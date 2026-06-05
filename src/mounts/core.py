@@ -274,7 +274,8 @@ class MountsProject:
             if not self.overwrite and os.path.exists(json_filepath):
                 if self.verbose:
                     logger.info(f"File {json_filepath} already exists, skipping")
-                graph_json: dict = json.load(open(json_filepath))
+                with open(json_filepath, encoding="utf-8") as read_file:
+                    graph_json: dict = json.load(read_file)
                 return graph_json
 
             if self.verbose:
