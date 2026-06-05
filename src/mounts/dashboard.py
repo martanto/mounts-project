@@ -8,20 +8,21 @@ explore SO2 and thermal time series per volcano. Run with:
 
 import os
 
-from mounts import MountsProject
+from mounts import MountsProject, __url__, __author__, __version__
+from mounts.constants import (
+    CSV_PATH,
+    SO2_UNIT,
+    SO2_COLOR,
+    XLSX_PATH,
+    OUTPUT_DIR,
+    THERMAL_UNIT,
+    THERMAL_COLOR,
+)
 
 import pandas as pd
 import streamlit as st
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-
-
-OUTPUT_DIR = os.path.join(os.getcwd(), "output")
-CSV_PATH = os.path.join(OUTPUT_DIR, "all-volcanoes.csv")
-XLSX_PATH = os.path.join(OUTPUT_DIR, "all-volcanoes.xlsx")
-
-SO2_UNIT = "tons/day"
-THERMAL_UNIT = "km²"
 
 
 @st.cache_data
@@ -73,24 +74,36 @@ def render_metrics(df: pd.DataFrame, data_type: str) -> None:
         f"{data_type} last observation",
         df.index.max().strftime("%Y-%m-%d %H:%M") if len(df) else "—",
     )
-    cols[2].metric(f"{data_type} max ({unit})", f"{df['value'].max():,.2f}" if len(df) else "—")
-    cols[3].metric(f"{data_type} mean ({unit})", f"{df['value'].mean():,.2f}" if len(df) else "—")
+    cols[2].metric(
+        f"{data_type} max ({unit})", f"{df['value'].max():,.2f}" if len(df) else "—"
+    )
+    cols[3].metric(
+        f"{data_type} mean ({unit})", f"{df['value'].mean():,.2f}" if len(df) else "—"
+    )
 
 
-def render_chart(df: pd.DataFrame, data_type: str, volcano: str) -> None:
+def render_chart(
+    df: pd.DataFrame,
+    data_type: str,
+    volcano: str,
+    mode: str,
+    marker_size: int,
+) -> None:
     """Render the Plotly time series for the selected type(s)."""
     if data_type in ("SO2", "Thermal"):
         unit = SO2_UNIT if data_type == "SO2" else THERMAL_UNIT
+        color = SO2_COLOR if data_type == "SO2" else THERMAL_COLOR
         fig = go.Figure()
         fig.add_trace(
             go.Scatter(
                 x=df.index,
                 y=df["value"],
-                mode="lines+markers",
+                mode=mode,
                 name=data_type,
+                line={"color": color},
+                marker={"color": color, "size": marker_size},
                 hovertemplate=(
-                    "%{x|%Y-%m-%d %H:%M}<br>"
-                    f"<b>%{{y:,.2f}}</b> {unit}<extra></extra>"
+                    f"%{{x|%Y-%m-%d %H:%M}}<br><b>%{{y:,.2f}}</b> {unit}<extra></extra>"
                 ),
             )
         )
@@ -109,8 +122,10 @@ def render_chart(df: pd.DataFrame, data_type: str, volcano: str) -> None:
             go.Scatter(
                 x=so2.index,
                 y=so2["value"],
-                mode="lines+markers",
+                mode=mode,
                 name="SO2",
+                line={"color": SO2_COLOR},
+                marker={"color": SO2_COLOR, "size": marker_size},
                 hovertemplate=(
                     f"%{{x|%Y-%m-%d %H:%M}}<br><b>%{{y:,.2f}}</b> {SO2_UNIT}<extra>SO2</extra>"
                 ),
@@ -121,8 +136,10 @@ def render_chart(df: pd.DataFrame, data_type: str, volcano: str) -> None:
             go.Scatter(
                 x=thermal.index,
                 y=thermal["value"],
-                mode="lines+markers",
+                mode=mode,
                 name="Thermal",
+                line={"color": THERMAL_COLOR},
+                marker={"color": THERMAL_COLOR, "size": marker_size},
                 hovertemplate=(
                     f"%{{x|%Y-%m-%d %H:%M}}<br><b>%{{y:,.2f}}</b> {THERMAL_UNIT}"
                     "<extra>Thermal</extra>"
@@ -144,6 +161,10 @@ def render_chart(df: pd.DataFrame, data_type: str, volcano: str) -> None:
 
 def main() -> None:
     st.set_page_config(page_title="MOUNTS Dashboard", layout="wide")
+    st.markdown(
+        '<style>[data-testid="stSidebar"] h1 { padding: 0; }</style>',
+        unsafe_allow_html=True,
+    )
 
     df = load_data()
     if df is None:
@@ -152,9 +173,21 @@ def main() -> None:
 
     volcanoes = sorted(df["name"].unique())
 
-    st.sidebar.title("MOUNTS")
+    st.sidebar.title("MOUNTS Dashboard")
+    st.sidebar.caption(
+        f"v{__version__} · {__author__} · [GitHub]({__url__})"
+    )
     volcano = st.sidebar.selectbox("Volcano", volcanoes)
-    data_type = st.sidebar.radio("Data type", ["Both", "SO2", "Thermal"], horizontal=True)
+    data_type = st.sidebar.radio(
+        "Data type", ["Both", "SO2", "Thermal"], horizontal=True
+    )
+    chart_style = st.sidebar.radio(
+        "Chart style", ["Line", "Scatter"], horizontal=True
+    )
+    chart_mode = "lines+markers" if chart_style == "Line" else "markers"
+    marker_size = st.sidebar.slider(
+        "Marker size", min_value=4, max_value=30, value=10
+    )
 
     volcano_df = df[df["name"] == volcano]
     min_date = volcano_df.index.min().date()
@@ -195,7 +228,7 @@ def main() -> None:
         st.warning("No observations match the current filters.")
         return
 
-    render_chart(filtered, data_type, volcano)
+    render_chart(filtered, data_type, volcano, chart_mode, marker_size)
 
     with st.expander("Underlying data", expanded=False):
         st.dataframe(filtered, width="stretch")

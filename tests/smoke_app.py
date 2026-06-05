@@ -1,9 +1,12 @@
 """Smoke test the Streamlit dashboard via AppTest (no browser needed)."""
+from importlib.resources import files
+
 from streamlit.testing.v1 import AppTest
 
 
 def main() -> None:
-    at = AppTest.from_file("app.py", default_timeout=30).run()
+    dashboard_path = str(files("mounts").joinpath("dashboard.py"))
+    at = AppTest.from_file(dashboard_path, default_timeout=30).run()
 
     assert not at.exception, f"App raised: {[str(e) for e in at.exception]}"
     assert at.title, "expected a st.title call"
