@@ -156,16 +156,44 @@ def render_chart(
             hovermode="x unified",
         )
 
-    fig.update_xaxes(
-        rangeslider={"visible": True},
-        rangeselector={
-            "buttons": [
-                {"count": 1, "label": "1m", "step": "month", "stepmode": "backward"},
-                {"count": 6, "label": "6m", "step": "month", "stepmode": "backward"},
-                {"count": 1, "label": "1y", "step": "year", "stepmode": "backward"},
-                {"step": "all"},
-            ]
+    last = df.index.max()
+    preset_starts = {
+        "3m": last - pd.DateOffset(months=3),
+        "6m": last - pd.DateOffset(months=6),
+        "1y": last - pd.DateOffset(years=1),
+    }
+    buttons = [
+        {
+            "label": label,
+            "method": "relayout",
+            "args": [{"xaxis.range": [start.isoformat(), last.isoformat()]}],
+        }
+        for label, start in preset_starts.items()
+    ] + [
+        {"label": "All", "method": "relayout", "args": [{"xaxis.autorange": True}]},
+    ]
+    fig.update_xaxes(rangeslider={"visible": True})
+    fig.update_layout(
+        modebar={"orientation": "v"},
+        legend={
+            "orientation": "h",
+            "yanchor": "bottom",
+            "y": 1.02,
+            "xanchor": "center",
+            "x": 0.5,
         },
+        updatemenus=[
+            {
+                "type": "buttons",
+                "direction": "right",
+                "buttons": buttons,
+                "x": 0.92,
+                "xanchor": "right",
+                "y": 1.15,
+                "yanchor": "bottom",
+                "showactive": False,
+            }
+        ],
     )
 
     st.plotly_chart(fig, width="stretch")
@@ -207,8 +235,7 @@ def main() -> None:
     date_range = st.sidebar.date_input(
         "Date range",
         value=(min_date, max_date),
-        min_value=min_date,
-        max_value=max_date,
+        key=f"date_range_{volcano}",
     )
 
     st.sidebar.markdown("---")
