@@ -17,6 +17,7 @@ damages arising out of any use of, or inability to use, the data.
 - [Requirements](#requirements)
 - [Installation](#installation)
 - [Quick Start](#quick-start)
+- [Dashboard](#dashboard)
 - [About the project](#about-the-project)
 - [Publications](#publications)
 - [Credits & Acknowledgements](#credits--acknowledgements)
@@ -109,6 +110,22 @@ volcanoes = [
 ]
 MountsProject().extract(volcanoes=volcanoes).save()
 ```
+
+## Dashboard
+
+An optional Streamlit dashboard (`app.py`) lets you explore the extracted data
+interactively, grouped by volcano and by data type (SO2 / Thermal).
+
+Install the extra dependencies and launch the app:
+
+```bash
+uv sync --extra dashboard
+uv run streamlit run app.py
+```
+
+The dashboard reads `output/all-volcanoes.csv`. If the file does not exist yet,
+use the **Refresh data** button in the sidebar (or run
+`MountsProject().extract().save("csv")` once) to populate it.
 
 ## About the project
 
