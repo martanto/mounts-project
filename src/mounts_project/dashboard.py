@@ -156,6 +156,18 @@ def render_chart(
             hovermode="x unified",
         )
 
+    fig.update_xaxes(
+        rangeslider={"visible": True},
+        rangeselector={
+            "buttons": [
+                {"count": 1, "label": "1m", "step": "month", "stepmode": "backward"},
+                {"count": 6, "label": "6m", "step": "month", "stepmode": "backward"},
+                {"count": 1, "label": "1y", "step": "year", "stepmode": "backward"},
+                {"step": "all"},
+            ]
+        },
+    )
+
     st.plotly_chart(fig, width="stretch")
 
 
