@@ -9,22 +9,20 @@ explore SO2 and thermal time series per volcano. Run with:
 import os
 
 from mounts import MountsProject
+from mounts.constants import (
+    CSV_PATH,
+    SO2_UNIT,
+    SO2_COLOR,
+    XLSX_PATH,
+    OUTPUT_DIR,
+    THERMAL_UNIT,
+    THERMAL_COLOR,
+)
 
 import pandas as pd
 import streamlit as st
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-
-
-OUTPUT_DIR = os.path.join(os.getcwd(), "output")
-CSV_PATH = os.path.join(OUTPUT_DIR, "all-volcanoes.csv")
-XLSX_PATH = os.path.join(OUTPUT_DIR, "all-volcanoes.xlsx")
-
-SO2_UNIT = "tons/day"
-THERMAL_UNIT = "km²"
-
-SO2_COLOR = "orange"
-THERMAL_COLOR = "red"
 
 
 @st.cache_data

@@ -1,12 +1,26 @@
-"""Package-private constants.
+"""Package constants.
 
-Holds the MOUNTS base URLs and the default Indonesian volcano catalog used by
+Holds the MOUNTS base URLs, the default Indonesian volcano catalog used by
 :meth:`mounts.core.MountsProject.extract` when no ``volcanoes`` argument is
-provided.
+provided, and the path / unit / color constants consumed by the Streamlit
+dashboard.
 """
+
+import os
+
 
 _MOUNTS_HOME_URL = "http://mounts-project.com"
 _MOUNTS_TIMESERIES_URL = _MOUNTS_HOME_URL + "/timeseries"
+
+OUTPUT_DIR = os.path.join(os.getcwd(), "output")
+CSV_PATH = os.path.join(OUTPUT_DIR, "all-volcanoes.csv")
+XLSX_PATH = os.path.join(OUTPUT_DIR, "all-volcanoes.xlsx")
+
+SO2_UNIT = "tons/day"
+THERMAL_UNIT = "km²"
+
+SO2_COLOR = "orange"
+THERMAL_COLOR = "red"
 
 _VOLCANOES: list[dict[str, str]] = [
     {
