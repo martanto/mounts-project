@@ -22,6 +22,10 @@ THERMAL_UNIT = "km²"
 SO2_COLOR = "orange"
 THERMAL_COLOR = "red"
 
+ANOMALY_WINDOW_DEFAULT = 14
+ANOMALY_SIGMA_DEFAULT = 2.0
+RECENT_DAYS_DEFAULT = 30
+
 _VOLCANOES: list[dict[str, str]] = [
     {
         "name": "Lewotobi Laki-laki",
