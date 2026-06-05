@@ -28,9 +28,9 @@ damages arising out of any use of, or inability to use, the data.
 
 - [Requirements](#requirements)
 - [Installation](#installation)
-- [Quick Start](#quick-start)
 - [Command-line interface](#command-line-interface)
 - [Dashboard](#dashboard)
+- [Quick Start](#quick-start)
 - [About the project](#about-the-project)
 - [Publications](#publications)
 - [Credits & Acknowledgements](#credits--acknowledgements)
@@ -54,6 +54,12 @@ Install from PyPI:
 uv add mounts-project
 ```
 
+Or with pip:
+
+```bash
+pip install mounts-project[dashboard]
+```
+
 Or install the latest from GitHub:
 
 ```bash
@@ -67,6 +73,56 @@ git clone https://github.com/martanto/mounts-project
 cd mounts-project
 uv sync
 ```
+
+## Command-line interface
+
+Installing the package registers a `mounts` console script:
+
+```bash
+uv run mounts --help
+uv run mounts save --help
+```
+
+### `mounts save`
+
+Extract every volcano in the default catalog and write the result.
+
+```bash
+uv run mounts save --type csv                       # → ./output/csv/*.csv + all-volcanoes.csv
+uv run mounts save --type xlsx --output-dir data    # → ./data/xlsx/*.xlsx + all-volcanoes.xlsx
+uv run mounts save --overwrite -v                   # force re-fetch + verbose logs
+```
+
+| Option         | Default    | Description                                        |
+|----------------|------------|----------------------------------------------------|
+| `--type`       | `csv`      | Output format (`csv` or `xlsx`).                   |
+| `--output-dir` | `./output` | Override the output directory.                     |
+| `--overwrite`  | off        | Re-fetch from MOUNTS even when cached JSON exists. |
+| `--verbose`    | off        | Emit per-volcano info logs during extraction.      |
+
+### `mounts dashboard`
+
+Launch the Streamlit dashboard. Any extra arguments are forwarded to
+`streamlit run`:
+
+```bash
+uv run mounts dashboard
+uv run mounts dashboard --server.port 9000 --server.headless true
+```
+
+## Dashboard
+
+`mounts dashboard` opens a Streamlit app that groups the extracted data by
+volcano and by data type (SO2 / Thermal). Install the extras first:
+
+```bash
+uv sync --extra dashboard
+uv run mounts dashboard
+```
+
+The dashboard reads `output/all-volcanoes.csv` from the current working
+directory. If it does not exist yet, click **Refresh data** in the sidebar
+or run `uv run mounts save --type csv` once to populate it.
 
 ## Quick Start
 
@@ -129,56 +185,6 @@ volcanoes = [
 ]
 MountsProject().extract(volcanoes=volcanoes).save()
 ```
-
-## Command-line interface
-
-Installing the package registers a `mounts` console script:
-
-```bash
-uv run mounts --help
-uv run mounts save --help
-```
-
-### `mounts save`
-
-Extract every volcano in the default catalog and write the result.
-
-```bash
-uv run mounts save --type csv                       # → ./output/csv/*.csv + all-volcanoes.csv
-uv run mounts save --type xlsx --output-dir data    # → ./data/xlsx/*.xlsx + all-volcanoes.xlsx
-uv run mounts save --overwrite -v                   # force re-fetch + verbose logs
-```
-
-| Option         | Default    | Description                                        |
-|----------------|------------|----------------------------------------------------|
-| `--type`       | `csv`      | Output format (`csv` or `xlsx`).                   |
-| `--output-dir` | `./output` | Override the output directory.                     |
-| `--overwrite`  | off        | Re-fetch from MOUNTS even when cached JSON exists. |
-| `--verbose`    | off        | Emit per-volcano info logs during extraction.      |
-
-### `mounts dashboard`
-
-Launch the Streamlit dashboard. Any extra arguments are forwarded to
-`streamlit run`:
-
-```bash
-uv run mounts dashboard
-uv run mounts dashboard --server.port 9000 --server.headless true
-```
-
-## Dashboard
-
-`mounts dashboard` opens a Streamlit app that groups the extracted data by
-volcano and by data type (SO2 / Thermal). Install the extras first:
-
-```bash
-uv sync --extra dashboard
-uv run mounts dashboard
-```
-
-The dashboard reads `output/all-volcanoes.csv` from the current working
-directory. If it does not exist yet, click **Refresh data** in the sidebar
-or run `uv run mounts save --type csv` once to populate it.
 
 ## About the project
 
