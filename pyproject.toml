@@ -55,5 +55,5 @@ cache-dir = "./.cache/uv"
 module-name = "mounts_project"
 
 [project.urls]
-Homepage = "https://github.com/martanto/mounts"
-Issues = "https://github.com/martanto/mounts/issues"
+Homepage = "https://github.com/martanto/mounts-project"
+Issues = "https://github.com/martanto/mounts-project/issues"

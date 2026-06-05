@@ -12,8 +12,8 @@ DataFrames, ready to be written to CSV or XLSX.
 
 <table align="center">
   <tr>
-    <td align="center"><img src="https://raw.githubusercontent.com/martanto/mounts/main/assets/dashboard-1.jpg" alt="Dashboard overview" /></td>
-    <td align="center"><img src="https://raw.githubusercontent.com/martanto/mounts/main/assets/dashboard-2.jpg" alt="Dashboard detail" /></td>
+    <td align="center"><img src="https://raw.githubusercontent.com/martanto/mounts-project/main/assets/dashboard-1.jpg" alt="Dashboard overview" /></td>
+    <td align="center"><img src="https://raw.githubusercontent.com/martanto/mounts-project/main/assets/dashboard-2.jpg" alt="Dashboard detail" /></td>
   </tr>
 </table>
 
@@ -57,14 +57,14 @@ uv add mounts-project
 Or install the latest from GitHub:
 
 ```bash
-uv add git+https://github.com/martanto/mounts
+uv add git+https://github.com/martanto/mounts-project
 ```
 
 Or, to work on the source:
 
 ```bash
-git clone https://github.com/martanto/mounts
-cd mounts
+git clone https://github.com/martanto/mounts-project
+cd mounts-project
 uv sync
 ```
 

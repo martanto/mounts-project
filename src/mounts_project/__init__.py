@@ -15,7 +15,7 @@ __author__ = "Martanto"
 __author_email__ = "martanto@live.com"
 __license__ = "MIT"
 __copyright__ = "Copyright (c) 2026, Martanto"
-__url__ = "https://github.com/martanto/mounts"
+__url__ = "https://github.com/martanto/mounts-project"
 
 __all__ = [
     "__version__",
