@@ -173,8 +173,7 @@ class MountsProject:
 
         Writes each DataFrame in ``self.data`` to
         ``<output_dir>/<filetype>/<slug>.<filetype>`` and a concatenated file to
-        ``<output_dir>/all-volcanoes.<filetype>``. Calls :meth:`extract`
-        automatically when ``self.data`` is empty.
+        ``<output_dir>/all-volcanoes.<filetype>``.
 
         Args:
             filetype (Literal["csv", "xlsx"], optional): Output format. Defaults
@@ -184,13 +183,21 @@ class MountsProject:
 
         Returns:
             Self: This :class:`MountsProject` instance, to enable chaining.
+
+        Raises:
+            RuntimeError: If ``self.data`` is empty. Call :meth:`extract`
+                explicitly first — ``save`` will not silently re-scrape the
+                default catalog (which used to overwrite the user's intended
+                custom list).
         """
+        if len(self.data) == 0:
+            raise RuntimeError(
+                "No data to save; call extract() first."
+            )
+
         save_dir = "csv" if filetype == "csv" else "xlsx"
         save_dir = os.path.join(self.output_dir, save_dir)
         ensure_dir(save_dir)
-
-        if len(self.data) == 0:
-            self.extract()
 
         files: list[str] = []
 
