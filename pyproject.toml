@@ -10,7 +10,7 @@ authors = [
 ]
 description = "Unofficial package for MOUNTS | Monitoring Unrest From Space"
 readme = "README.md"
-license = {file = "LICENSE"}
+license = "MIT"
 keywords = ["volcano", "volcanology", "volcanoes", "thermal", "remote sensing"]
 requires-python = ">=3.11"
 dependencies = [
@@ -21,7 +21,8 @@ dependencies = [
     "requests>=2.34.2",
 ]
 classifiers = [
-    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Science/Research",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -45,13 +46,13 @@ dev = [
 ]
 
 [project.scripts]
-mounts = "scripts.cli:cli"
+mounts = "mounts.cli:cli"
 
 [tool.uv]
 cache-dir = "./.cache/uv"
 
 [tool.uv.build-backend]
-module-name = ["mounts", "scripts"]
+module-name = "mounts"
 
 [project.urls]
 Homepage = "https://github.com/martanto/mounts"
