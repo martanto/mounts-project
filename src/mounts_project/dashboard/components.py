@@ -1,23 +1,14 @@
-"""Streamlit dashboard for the MOUNTS scrape outputs.
+"""Shared rendering helpers used by every dashboard page."""
 
-Reads ``output/all-volcanoes.csv`` (falling back to the XLSX) and lets the user
-explore SO2 and thermal time series per volcano. Run with:
-
-    uv run streamlit run app.py
-"""
-
-import os
-
-from mounts_project import MountsProject, __url__, __author__, __version__
+from mounts_project import __url__, __author__, __version__
 from mounts_project.constants import (
-    CSV_PATH,
     SO2_UNIT,
     SO2_COLOR,
-    XLSX_PATH,
     OUTPUT_DIR,
     THERMAL_UNIT,
     THERMAL_COLOR,
 )
+from mounts_project.dashboard.data import refresh_data
 
 import pandas as pd
 import streamlit as st
@@ -25,31 +16,10 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 
-@st.cache_data
-def load_data() -> pd.DataFrame | None:
-    """Read the merged all-volcanoes export into a single DataFrame.
-
-    Returns ``None`` when neither the CSV nor the XLSX export exists so the UI
-    can render an empty-state panel with a Refresh button.
-    """
-    if os.path.exists(CSV_PATH):
-        df = pd.read_csv(CSV_PATH, parse_dates=["datetime"])
-    elif os.path.exists(XLSX_PATH):
-        df = pd.read_excel(XLSX_PATH, parse_dates=["datetime"])
-    else:
-        return None
-
-    df = df.set_index("datetime").sort_index()
-    df["code"] = df["code"].astype(str)
-    return df
-
-
-def refresh_data() -> None:
-    """Re-run extraction, persist to CSV, and clear the Streamlit data cache."""
-    with st.spinner("Fetching latest MOUNTS data (this can take ~1 minute)…"):
-        MountsProject(overwrite=True).extract().save(filetype="csv")
-    st.cache_data.clear()
-    st.toast("Data refreshed.")
+def render_sidebar_header() -> None:
+    """Render the sidebar title + version/author/GitHub caption."""
+    st.sidebar.title("MOUNTS Dashboard")
+    st.sidebar.caption(f"v{__version__} · {__author__} · [GitHub]({__url__})")
 
 
 def render_empty_state() -> None:
@@ -82,14 +52,77 @@ def render_metrics(df: pd.DataFrame, data_type: str) -> None:
     )
 
 
+def _add_anomaly_traces(
+    fig: go.Figure,
+    df: pd.DataFrame,
+    color: str,
+    secondary_y: bool | None = None,
+) -> None:
+    """Append rolling mean, upper band, and spike markers to ``fig``."""
+    kwargs: dict = {}
+    if secondary_y is not None:
+        kwargs["secondary_y"] = secondary_y
+    fig.add_trace(
+        go.Scatter(
+            x=df.index,
+            y=df["roll_mean"],
+            mode="lines",
+            name="Rolling mean",
+            line={"color": color, "dash": "dash", "width": 1},
+            hoverinfo="skip",
+            showlegend=False,
+        ),
+        **kwargs,
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=df.index,
+            y=df["upper"],
+            mode="lines",
+            name="Upper (μ + N·σ)",
+            line={"color": color, "dash": "dot", "width": 1},
+            opacity=0.5,
+            hoverinfo="skip",
+            showlegend=False,
+        ),
+        **kwargs,
+    )
+    spikes = df[df["is_spike"]]
+    if not spikes.empty:
+        fig.add_trace(
+            go.Scatter(
+                x=spikes.index,
+                y=spikes["value"],
+                mode="markers",
+                name="Spike",
+                marker={
+                    "color": "crimson",
+                    "size": 12,
+                    "symbol": "diamond-open",
+                    "line": {"width": 2},
+                },
+                hovertemplate="%{x|%Y-%m-%d %H:%M}<br><b>%{y:,.2f}</b><extra>Spike</extra>",
+                showlegend=False,
+            ),
+            **kwargs,
+        )
+
+
 def render_chart(
     df: pd.DataFrame,
     data_type: str,
     volcano: str,
     mode: str,
     marker_size: int,
+    anomaly_df: pd.DataFrame | None = None,
 ) -> None:
-    """Render the Plotly time series for the selected type(s)."""
+    """Render the Plotly time series for the selected type(s).
+
+    When ``anomaly_df`` is provided (already restricted to the same volcano +
+    date window as ``df``), the rolling mean, upper threshold band, and spike
+    markers are overlaid on the figure. For the dual-axis ``"Both"`` view, the
+    overlay is split per axis using the existing ``type`` column.
+    """
     if data_type in ("SO2", "Thermal"):
         unit = SO2_UNIT if data_type == "SO2" else THERMAL_UNIT
         color = SO2_COLOR if data_type == "SO2" else THERMAL_COLOR
@@ -107,6 +140,8 @@ def render_chart(
                 ),
             )
         )
+        if anomaly_df is not None and not anomaly_df.empty:
+            _add_anomaly_traces(fig, anomaly_df, color)
         fig.update_layout(
             title=f"{volcano} — {data_type}",
             xaxis_title="Date",
@@ -147,6 +182,13 @@ def render_chart(
             ),
             secondary_y=True,
         )
+        if anomaly_df is not None and not anomaly_df.empty:
+            so2_anom = anomaly_df[anomaly_df["type"] == "SO2"]
+            thermal_anom = anomaly_df[anomaly_df["type"] == "Thermal"]
+            if not so2_anom.empty:
+                _add_anomaly_traces(fig, so2_anom, SO2_COLOR, secondary_y=False)
+            if not thermal_anom.empty:
+                _add_anomaly_traces(fig, thermal_anom, THERMAL_COLOR, secondary_y=True)
         fig.update_yaxes(title_text=f"SO2 ({SO2_UNIT})", secondary_y=False)
         fig.update_yaxes(title_text=f"Thermal ({THERMAL_UNIT})", secondary_y=True)
         fig.update_layout(
@@ -168,81 +210,3 @@ def render_chart(
     )
 
     st.plotly_chart(fig, width="stretch")
-
-
-def main() -> None:
-    st.set_page_config(page_title="MOUNTS Dashboard", layout="wide")
-    st.markdown(
-        '<style>[data-testid="stSidebar"] h1 { padding: 0; }</style>',
-        unsafe_allow_html=True,
-    )
-
-    df = load_data()
-    if df is None:
-        render_empty_state()
-        return
-
-    volcanoes = sorted(df["name"].unique())
-
-    st.sidebar.title("MOUNTS Dashboard")
-    st.sidebar.caption(
-        f"v{__version__} · {__author__} · [GitHub]({__url__})"
-    )
-    volcano = st.sidebar.selectbox("Volcano", volcanoes)
-    data_type = st.sidebar.radio(
-        "Data type", ["Both", "SO2", "Thermal"], horizontal=True
-    )
-    chart_style = st.sidebar.radio(
-        "Chart style", ["Line", "Scatter"], horizontal=True
-    )
-    chart_mode = "lines+markers" if chart_style == "Line" else "markers"
-    marker_size = st.sidebar.slider(
-        "Marker size", min_value=4, max_value=30, value=10
-    )
-
-    volcano_df = df[df["name"] == volcano]
-    min_date = volcano_df.index.min().date()
-    max_date = volcano_df.index.max().date()
-    date_range = st.sidebar.date_input(
-        "Date range",
-        value=(min_date, max_date),
-        key=f"date_range_{volcano}",
-    )
-
-    st.sidebar.markdown("---")
-    if st.sidebar.button("Refresh data"):
-        refresh_data()
-        st.rerun()
-
-    if isinstance(date_range, tuple) and len(date_range) == 2:
-        start, end = date_range
-        mask = (volcano_df.index.date >= start) & (volcano_df.index.date <= end)
-        volcano_df = volcano_df[mask]
-
-    if data_type != "Both":
-        filtered = volcano_df[volcano_df["type"] == data_type]
-    else:
-        filtered = volcano_df
-
-    code = volcano_df["code"].iloc[0] if len(volcano_df) else "—"
-    st.title(f"{volcano}")
-    st.caption(f"MOUNTS code: `{code}`")
-
-    if data_type == "Both":
-        render_metrics(volcano_df[volcano_df["type"] == "SO2"], "SO2")
-        render_metrics(volcano_df[volcano_df["type"] == "Thermal"], "Thermal")
-    else:
-        render_metrics(filtered, data_type)
-
-    if filtered.empty:
-        st.warning("No observations match the current filters.")
-        return
-
-    render_chart(filtered, data_type, volcano, chart_mode, marker_size)
-
-    with st.expander("Underlying data", expanded=False):
-        st.dataframe(filtered, width="stretch")
-
-
-if __name__ == "__main__":
-    main()

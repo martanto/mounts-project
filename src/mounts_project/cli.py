@@ -75,7 +75,7 @@ def dashboard(streamlit_args: tuple[str, ...]) -> None:
 
         mounts dashboard --server.port 9000
     """
-    dashboard_path = files("mounts_project").joinpath("dashboard.py")
+    dashboard_path = files("mounts_project.dashboard").joinpath("app.py")
     cmd = [
         sys.executable,
         "-m",
