@@ -44,7 +44,9 @@ class MountsProject:
             JSON file exists.
         verbose (bool): If ``True``, emit per-volcano info logs during fetch.
         data (dict[str, pd.DataFrame]): Per-volcano extracted DataFrames keyed
-            by volcano name. Populated by :meth:`extract`.
+            by ``slugify(f"{name}-{code}")`` (the same slug used for the cache
+            and output filenames) so two volcanoes sharing a name but
+            differing in code stay distinct. Populated by :meth:`extract`.
         catalogs (list[dict[str, Any]]): Per-volcano metadata (``name``,
             ``code``, ``updated_at``). Populated by :meth:`extract`.
         files (list[str]): Paths of files written by :meth:`save`.
@@ -155,7 +157,8 @@ class MountsProject:
             except Exception as e:
                 logger.error(f"[{volcano['name']}] extract failed: {e}")
                 continue
-            self.data[volcano["name"]] = df
+            key = slugify(f"{volcano['name']}-{volcano['code']}")
+            self.data[key] = df
             self.catalogs.append(
                 {
                     "name": volcano["name"],
@@ -202,9 +205,8 @@ class MountsProject:
         files: list[str] = []
 
         dfs = []
-        for volcano_name, df in self.data.items():
-            filename = slugify(volcano_name)
-            filepath = os.path.join(save_dir, f"{filename}.{filetype}")
+        for key, df in self.data.items():
+            filepath = os.path.join(save_dir, f"{key}.{filetype}")
 
             if filetype == "csv":
                 df.to_csv(filepath, index=True)
@@ -213,7 +215,7 @@ class MountsProject:
 
             dfs.append(df)
 
-            logger.info(f"[{volcano_name}] Saved to: {filepath}")
+            logger.info(f"[{key}] Saved to: {filepath}")
             files.append(filepath)
 
         df_concat = pd.concat(dfs, ignore_index=False)

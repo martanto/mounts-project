@@ -31,5 +31,5 @@ def test_extract_isolates_per_volcano_failures(
     )
 
     assert calls == ["alpha", "boom", "gamma"]
-    assert set(mp.data.keys()) == {"alpha", "gamma"}
+    assert set(mp.data.keys()) == {"alpha-1", "gamma-3"}
     assert [c["name"] for c in mp.catalogs] == ["alpha", "gamma"]
