@@ -10,6 +10,13 @@ for [MOUNTS — Monitoring Unrest From Space](http://www.mounts-project.com).
 Scrapes SO2 and thermal timeseries from the public MOUNTS pages and exposes them as pandas
 DataFrames, ready to be written to CSV or XLSX.
 
+<table align="center">
+  <tr>
+    <td align="center"><img src="https://raw.githubusercontent.com/martanto/mounts/main/assets/dashboard-1.jpg" alt="Dashboard overview" /></td>
+    <td align="center"><img src="https://raw.githubusercontent.com/martanto/mounts/main/assets/dashboard-2.jpg" alt="Dashboard detail" /></td>
+  </tr>
+</table>
+
 ## Disclaimer
 
 This is an **unofficial** client and is not affiliated with the MOUNTS project. The information
@@ -17,18 +24,8 @@ presented within the MOUNTS website is provided "as is" and users bear all respo
 liability for their use of data and images, and for any indirect, incidental or consequential
 damages arising out of any use of, or inability to use, the data.
 
-## Screenshots
-
-<table align="center">
-  <tr>
-    <td align="center"><img src="assets/dashboard-1.jpg" alt="Dashboard overview" /></td>
-    <td align="center"><img src="assets/dashboard-2.jpg" alt="Dashboard detail" /></td>
-  </tr>
-</table>
-
 ## Table of Contents
 
-- [Screenshots](#screenshots)
 - [Requirements](#requirements)
 - [Installation](#installation)
 - [Quick Start](#quick-start)
