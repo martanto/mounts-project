@@ -51,7 +51,7 @@ damages arising out of any use of, or inability to use, the data.
 Install from PyPI:
 
 ```bash
-uv add mounts-project
+uv add mounts-project[dashboard]
 ```
 
 Or with pip:
