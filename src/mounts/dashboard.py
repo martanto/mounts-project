@@ -8,7 +8,7 @@ explore SO2 and thermal time series per volcano. Run with:
 
 import os
 
-from mounts import MountsProject
+from mounts import MountsProject, __url__, __author__, __version__
 from mounts.constants import (
     CSV_PATH,
     SO2_UNIT,
@@ -74,8 +74,12 @@ def render_metrics(df: pd.DataFrame, data_type: str) -> None:
         f"{data_type} last observation",
         df.index.max().strftime("%Y-%m-%d %H:%M") if len(df) else "—",
     )
-    cols[2].metric(f"{data_type} max ({unit})", f"{df['value'].max():,.2f}" if len(df) else "—")
-    cols[3].metric(f"{data_type} mean ({unit})", f"{df['value'].mean():,.2f}" if len(df) else "—")
+    cols[2].metric(
+        f"{data_type} max ({unit})", f"{df['value'].max():,.2f}" if len(df) else "—"
+    )
+    cols[3].metric(
+        f"{data_type} mean ({unit})", f"{df['value'].mean():,.2f}" if len(df) else "—"
+    )
 
 
 def render_chart(df: pd.DataFrame, data_type: str, volcano: str) -> None:
@@ -93,8 +97,7 @@ def render_chart(df: pd.DataFrame, data_type: str, volcano: str) -> None:
                 line={"color": color},
                 marker={"color": color},
                 hovertemplate=(
-                    "%{x|%Y-%m-%d %H:%M}<br>"
-                    f"<b>%{{y:,.2f}}</b> {unit}<extra></extra>"
+                    f"%{{x|%Y-%m-%d %H:%M}}<br><b>%{{y:,.2f}}</b> {unit}<extra></extra>"
                 ),
             )
         )
@@ -160,9 +163,14 @@ def main() -> None:
 
     volcanoes = sorted(df["name"].unique())
 
-    st.sidebar.title("MOUNTS")
+    st.sidebar.title("MOUNTS Dashboard")
+    st.sidebar.caption(
+        f"v{__version__} · {__author__} · [GitHub]({__url__})"
+    )
     volcano = st.sidebar.selectbox("Volcano", volcanoes)
-    data_type = st.sidebar.radio("Data type", ["Both", "SO2", "Thermal"], horizontal=True)
+    data_type = st.sidebar.radio(
+        "Data type", ["Both", "SO2", "Thermal"], horizontal=True
+    )
 
     volcano_df = df[df["name"] == volcano]
     min_date = volcano_df.index.min().date()
