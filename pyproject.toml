@@ -1,0 +1,45 @@
+[build-system]
+requires = ["uv_build<0.12"]
+build-backend = "uv_build"
+
+[project]
+name =  "mounts"
+version = "0.1.0"
+authors = [
+    {name = "Martanto", email = "martanto@live.com"},
+]
+description = "Unofficial package for MOUNTS | Monitoring Unrest From Space"
+readme = "README.md"
+license = {file = "LICENSE"}
+keywords = ["volcano", "volcanology", "volcanoes", "thermal", "remote sensing"]
+requires-python = ">=3.11"
+dependencies = [
+    "loguru>=0.7.3",
+    "openpyxl>=3.1.5",
+    "pandas>=3.0.3",
+    "requests>=2.34.2",
+]
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+
+[dependency-groups]
+dev = [
+    "uv-build",
+    "ruff",
+    "ty",
+    "ipykernel",
+    "notebook",
+    "pytest",
+]
+
+[tool.uv]
+cache-dir = "./.cache/uv"
+
+[project.urls]
+Homepage = "https://github.com/martanto/mounts"
+Issues = "https://github.com/martanto/mounts/issues"
