@@ -25,6 +25,11 @@ _ERROR_LOG_RETENTION = "90 days"
 # environment disagreeing (which made enable_logging() a silent no-op).
 _logging_enabled: bool = os.environ.get("DISABLE_LOGGING") != "1"
 
+# Current console log level. set_log_level() updates this; every other
+# reconfigure path (set_log_directory, enable_logging) reads it so a prior
+# level choice is preserved across reconfigures.
+_console_level: str = "INFO"
+
 DEFAULT_LOG_DIR: str = str(ensure_dir(os.path.join(os.getcwd(), "logs")))
 
 _FILE_FORMAT = (
@@ -82,7 +87,7 @@ def _configure_handlers(log_dir: str, console_level: str = "INFO") -> None:
 
 # Skip if the parent process disabled logging (env var is inherited by workers).
 if os.environ.get("DISABLE_LOGGING") != "1":
-    _configure_handlers(DEFAULT_LOG_DIR)
+    _configure_handlers(DEFAULT_LOG_DIR, console_level=_console_level)
 
 
 def get_logger():
@@ -105,7 +110,9 @@ def set_log_level(level: str) -> None:
             ``"DEBUG"``, ``"INFO"``, ``"WARNING"``, ``"ERROR"``, or
             ``"CRITICAL"``. Case-insensitive.
     """
-    _configure_handlers(DEFAULT_LOG_DIR, console_level=level)
+    global _console_level
+    _console_level = level.upper()
+    _configure_handlers(DEFAULT_LOG_DIR, console_level=_console_level)
 
 
 def set_log_directory(log_dir: str) -> None:
@@ -120,7 +127,7 @@ def set_log_directory(log_dir: str) -> None:
     """
     global DEFAULT_LOG_DIR
     DEFAULT_LOG_DIR = str(ensure_dir(os.path.abspath(log_dir)))
-    _configure_handlers(DEFAULT_LOG_DIR)
+    _configure_handlers(DEFAULT_LOG_DIR, console_level=_console_level)
     logger.info(f"Log directory changed to: {DEFAULT_LOG_DIR}")
 
 
@@ -146,4 +153,4 @@ def enable_logging() -> None:
     if not _logging_enabled:
         _logging_enabled = True
         os.environ.pop("DISABLE_LOGGING", None)
-        _configure_handlers(DEFAULT_LOG_DIR)
+        _configure_handlers(DEFAULT_LOG_DIR, console_level=_console_level)
