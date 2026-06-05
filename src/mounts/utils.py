@@ -111,9 +111,6 @@ def get_thermal_values(graph_json: dict) -> pd.DataFrame:
     return _extract_trace(graph_json, ("thermal",), "Thermal")
 
 
-_GRAPH_START_RE = re.compile(r"\bvar\s+graph\s*=\s*\{")
-
-
 def get_json_from_javascript(response: requests.Response) -> dict:
     """Extract and parse the ``var graph = {...}`` blob from a MOUNTS response.
 
@@ -135,7 +132,7 @@ def get_json_from_javascript(response: requests.Response) -> dict:
             or the object literal has unbalanced braces.
     """
     text = response.text
-    match = _GRAPH_START_RE.search(text)
+    match = re.compile(r"\bvar\s+graph\s*=\s*\{").search(text)
     if match is None:
         raise ValueError(
             "Could not locate 'var graph = {...}' assignment in MOUNTS response"
