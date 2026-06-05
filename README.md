@@ -1,5 +1,10 @@
 # mounts
 
+![Version](https://img.shields.io/badge/version-0.1.0-blue)
+![Python](https://img.shields.io/badge/python-3.11%2B-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+![Status](https://img.shields.io/badge/status-active%20development-orange)
+
 Unofficial Python package
 for [MOUNTS — Monitoring Unrest From Space](http://www.mounts-project.com).
 Scrapes SO2 and thermal timeseries from the public MOUNTS pages and exposes them as pandas
@@ -12,8 +17,18 @@ presented within the MOUNTS website is provided "as is" and users bear all respo
 liability for their use of data and images, and for any indirect, incidental or consequential
 damages arising out of any use of, or inability to use, the data.
 
+## Screenshots
+
+<table align="center">
+  <tr>
+    <td align="center"><img src="assets/dashboard-1.jpg" alt="Dashboard overview" /></td>
+    <td align="center"><img src="assets/dashboard-2.jpg" alt="Dashboard detail" /></td>
+  </tr>
+</table>
+
 ## Table of Contents
 
+- [Screenshots](#screenshots)
 - [Requirements](#requirements)
 - [Installation](#installation)
 - [Quick Start](#quick-start)
@@ -131,12 +146,12 @@ uv run mounts save --type xlsx --output-dir data    # → ./data/xlsx/*.xlsx + a
 uv run mounts save --overwrite -v                   # force re-fetch + verbose logs
 ```
 
-| Option        | Default     | Description                                                  |
-|---------------|-------------|--------------------------------------------------------------|
-| `--type`      | `csv`       | Output format (`csv` or `xlsx`).                             |
-| `--output-dir`| `./output`  | Override the output directory.                               |
-| `--overwrite` | off         | Re-fetch from MOUNTS even when cached JSON exists.           |
-| `--verbose`   | off         | Emit per-volcano info logs during extraction.                |
+| Option         | Default    | Description                                        |
+|----------------|------------|----------------------------------------------------|
+| `--type`       | `csv`      | Output format (`csv` or `xlsx`).                   |
+| `--output-dir` | `./output` | Override the output directory.                     |
+| `--overwrite`  | off        | Re-fetch from MOUNTS even when cached JSON exists. |
+| `--verbose`    | off        | Emit per-volcano info logs during extraction.      |
 
 ### `mounts dashboard`
 
