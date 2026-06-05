@@ -15,6 +15,10 @@ DataFrames, ready to be written to CSV or XLSX.
     <td align="center"><img src="https://raw.githubusercontent.com/martanto/mounts-project/main/assets/dashboard-1.jpg" alt="Dashboard overview" /></td>
     <td align="center"><img src="https://raw.githubusercontent.com/martanto/mounts-project/main/assets/dashboard-2.jpg" alt="Dashboard detail" /></td>
   </tr>
+  <tr>
+    <td align="center"><img src="https://raw.githubusercontent.com/martanto/mounts-project/main/assets/dashboard-3.jpg" alt="Thermal daily max calendar" /></td>
+    <td align="center"><img src="https://raw.githubusercontent.com/martanto/mounts-project/main/assets/anomaly-overlay.jpg" alt="Anomaly overlay on SO2 vs Thermal" /></td>
+  </tr>
 </table>
 
 ## Disclaimer

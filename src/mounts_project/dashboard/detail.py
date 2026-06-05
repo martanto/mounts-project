@@ -22,9 +22,20 @@ from mounts_project.dashboard.components import (
 import pandas as pd
 import streamlit as st
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
 
 _DOW_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+
+
+def _iso_to_date(year: int, week: int, dow: int) -> str:
+    """Convert (ISO year, ISO week, 0-indexed weekday) to ``YYYY-MM-DD`` — empty if invalid."""
+    try:
+        return pd.Timestamp.fromisocalendar(int(year), int(week), int(dow) + 1).strftime(
+            "%Y-%m-%d"
+        )
+    except ValueError:
+        return ""
 
 
 def _distribution_section(df: pd.DataFrame, data_type: str) -> None:
@@ -78,7 +89,7 @@ def _distribution_section(df: pd.DataFrame, data_type: str) -> None:
 
 
 def _calendar_heatmap(df: pd.DataFrame, data_type: str) -> go.Figure:
-    """ISO-week × day-of-week heatmap of daily max value."""
+    """GitHub-style year-faceted ISO-week × day-of-week heatmap of daily max value."""
     unit = SO2_UNIT if data_type == "SO2" else THERMAL_UNIT
     sub = df[df["type"] == data_type]
     if sub.empty:
@@ -87,36 +98,58 @@ def _calendar_heatmap(df: pd.DataFrame, data_type: str) -> go.Figure:
         )
     daily = sub.assign(day=sub.index.normalize()).groupby("day")["value"].max()
     iso = daily.index.isocalendar()
-    pivot = (
-        pd.DataFrame(
-            {
-                "year_week": iso["year"].astype(str)
-                + "-W"
-                + iso["week"].astype(str).str.zfill(2),
-                "dow": iso["day"] - 1,
-                "value": daily.to_numpy(),
-            }
-        )
-        .pivot_table(index="dow", columns="year_week", values="value", aggfunc="max")
-        .reindex(range(7))
+    table = pd.DataFrame(
+        {
+            "year": iso["year"].astype(int),
+            "week": iso["week"].astype(int),
+            "dow": iso["day"].astype(int) - 1,
+            "value": daily.to_numpy(),
+        }
     )
-    fig = go.Figure(
-        data=go.Heatmap(
-            z=pivot.values,
-            x=pivot.columns,
-            y=[_DOW_LABELS[i] for i in pivot.index],
-            colorscale="Oranges" if data_type == "SO2" else "Reds",
-            colorbar={"title": unit},
-            hovertemplate=(
-                f"%{{x}} · %{{y}}<br><b>%{{z:,.2f}}</b> {unit}<extra></extra>"
+    years = sorted(table["year"].unique())
+    colorscale = "Oranges" if data_type == "SO2" else "Reds"
+    zmin = float(table["value"].min())
+    zmax = float(table["value"].max())
+
+    fig = make_subplots(
+        rows=len(years),
+        cols=1,
+        vertical_spacing=0.04,
+        subplot_titles=[str(y) for y in years],
+    )
+    for i, year in enumerate(years, start=1):
+        pivot = (
+            table[table["year"] == year]
+            .pivot_table(index="dow", columns="week", values="value", aggfunc="max")
+            .reindex(index=range(7), columns=range(1, 54))
+        )
+        dates = [
+            [_iso_to_date(year, week, dow) for week in pivot.columns]
+            for dow in pivot.index
+        ]
+        fig.add_trace(
+            go.Heatmap(
+                z=pivot.values,
+                x=pivot.columns,
+                y=[_DOW_LABELS[d] for d in pivot.index],
+                customdata=dates,
+                colorscale=colorscale,
+                zmin=zmin,
+                zmax=zmax,
+                showscale=False,
+                xgap=3,
+                ygap=3,
+                hovertemplate=(
+                    f"%{{customdata}}<br><b>%{{z:,.2f}}</b> {unit}<extra></extra>"
+                ),
             ),
+            row=i,
+            col=1,
         )
-    )
+    fig.update_xaxes(title_text="ISO week", row=len(years), col=1)
     fig.update_layout(
         title=f"{data_type} — daily max calendar",
-        xaxis_title="ISO week",
-        yaxis_title="Day",
-        height=260,
+        height=120 * len(years) + 80,
     )
     return fig
 
