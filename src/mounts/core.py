@@ -273,8 +273,10 @@ class MountsProject:
             response.raise_for_status()
             graph_json = get_json_from_javascript(response)
 
-            with open(json_filepath, "w") as write_file:
+            tmp_filepath = json_filepath + ".tmp"
+            with open(tmp_filepath, "w", encoding="utf-8") as write_file:
                 json.dump(graph_json, write_file, indent=2)
+            os.replace(tmp_filepath, json_filepath)
 
             return graph_json
 
