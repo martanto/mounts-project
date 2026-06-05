@@ -82,7 +82,13 @@ def render_metrics(df: pd.DataFrame, data_type: str) -> None:
     )
 
 
-def render_chart(df: pd.DataFrame, data_type: str, volcano: str) -> None:
+def render_chart(
+    df: pd.DataFrame,
+    data_type: str,
+    volcano: str,
+    mode: str,
+    marker_size: int,
+) -> None:
     """Render the Plotly time series for the selected type(s)."""
     if data_type in ("SO2", "Thermal"):
         unit = SO2_UNIT if data_type == "SO2" else THERMAL_UNIT
@@ -92,10 +98,10 @@ def render_chart(df: pd.DataFrame, data_type: str, volcano: str) -> None:
             go.Scatter(
                 x=df.index,
                 y=df["value"],
-                mode="lines+markers",
+                mode=mode,
                 name=data_type,
                 line={"color": color},
-                marker={"color": color},
+                marker={"color": color, "size": marker_size},
                 hovertemplate=(
                     f"%{{x|%Y-%m-%d %H:%M}}<br><b>%{{y:,.2f}}</b> {unit}<extra></extra>"
                 ),
@@ -116,10 +122,10 @@ def render_chart(df: pd.DataFrame, data_type: str, volcano: str) -> None:
             go.Scatter(
                 x=so2.index,
                 y=so2["value"],
-                mode="lines+markers",
+                mode=mode,
                 name="SO2",
                 line={"color": SO2_COLOR},
-                marker={"color": SO2_COLOR},
+                marker={"color": SO2_COLOR, "size": marker_size},
                 hovertemplate=(
                     f"%{{x|%Y-%m-%d %H:%M}}<br><b>%{{y:,.2f}}</b> {SO2_UNIT}<extra>SO2</extra>"
                 ),
@@ -130,10 +136,10 @@ def render_chart(df: pd.DataFrame, data_type: str, volcano: str) -> None:
             go.Scatter(
                 x=thermal.index,
                 y=thermal["value"],
-                mode="lines+markers",
+                mode=mode,
                 name="Thermal",
                 line={"color": THERMAL_COLOR},
-                marker={"color": THERMAL_COLOR},
+                marker={"color": THERMAL_COLOR, "size": marker_size},
                 hovertemplate=(
                     f"%{{x|%Y-%m-%d %H:%M}}<br><b>%{{y:,.2f}}</b> {THERMAL_UNIT}"
                     "<extra>Thermal</extra>"
@@ -175,6 +181,13 @@ def main() -> None:
     data_type = st.sidebar.radio(
         "Data type", ["Both", "SO2", "Thermal"], horizontal=True
     )
+    chart_style = st.sidebar.radio(
+        "Chart style", ["Line", "Scatter"], horizontal=True
+    )
+    chart_mode = "lines+markers" if chart_style == "Line" else "markers"
+    marker_size = st.sidebar.slider(
+        "Marker size", min_value=4, max_value=30, value=10
+    )
 
     volcano_df = df[df["name"] == volcano]
     min_date = volcano_df.index.min().date()
@@ -215,7 +228,7 @@ def main() -> None:
         st.warning("No observations match the current filters.")
         return
 
-    render_chart(filtered, data_type, volcano)
+    render_chart(filtered, data_type, volcano, chart_mode, marker_size)
 
     with st.expander("Underlying data", expanded=False):
         st.dataframe(filtered, width="stretch")
