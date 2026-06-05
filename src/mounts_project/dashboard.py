@@ -8,8 +8,8 @@ explore SO2 and thermal time series per volcano. Run with:
 
 import os
 
-from mounts import MountsProject, __url__, __author__, __version__
-from mounts.constants import (
+from mounts_project import MountsProject, __url__, __author__, __version__
+from mounts_project.constants import (
     CSV_PATH,
     SO2_UNIT,
     SO2_COLOR,

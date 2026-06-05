@@ -1,4 +1,4 @@
-from mounts import MountsProject
+from mounts_project import MountsProject
 
 
 def main():

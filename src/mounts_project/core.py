@@ -9,15 +9,15 @@ import os
 import json
 from typing import Any, Self, Literal
 
-from mounts.utils import (
+from mounts_project.utils import (
     slugify,
     ensure_dir,
     get_so2_values,
     get_thermal_values,
     get_json_from_javascript,
 )
-from mounts.logger import logger
-from mounts.constants import _VOLCANOES, _MOUNTS_TIMESERIES_URL
+from mounts_project.logger import logger
+from mounts_project.constants import _VOLCANOES, _MOUNTS_TIMESERIES_URL
 
 import pandas as pd
 import requests

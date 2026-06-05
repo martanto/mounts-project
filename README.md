@@ -1,4 +1,4 @@
-# mounts
+# mounts-project
 
 ![Version](https://img.shields.io/badge/version-0.1.0-blue)
 ![Python](https://img.shields.io/badge/python-3.11%2B-blue)
@@ -48,7 +48,13 @@ damages arising out of any use of, or inability to use, the data.
 
 ## Installation
 
-Install the latest release directly from GitHub:
+Install from PyPI:
+
+```bash
+uv add mounts-project
+```
+
+Or install the latest from GitHub:
 
 ```bash
 uv add git+https://github.com/martanto/mounts
@@ -67,7 +73,7 @@ uv sync
 Minimal example (see [`main.py`](main.py)):
 
 ```python
-from mounts import MountsProject
+from mounts_project import MountsProject
 
 
 def main():
@@ -340,7 +346,7 @@ Returns `self` for chaining.
 
 ### Utility functions
 
-From `mounts.utils`:
+From `mounts_project.utils`:
 
 | Function                             | Description                                                                                                                                             |
 |--------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -356,7 +362,7 @@ The package configures [loguru](https://loguru.readthedocs.io/) on import, writi
 plus daily-rotated `logs/mounts_YYYY-MM-DD.log` and `logs/errors_YYYY-MM-DD.log` files in the
 current working directory.
 
-From `mounts.logger`:
+From `mounts_project.logger`:
 
 | Function                     | Description                                                                               |
 |------------------------------|-------------------------------------------------------------------------------------------|

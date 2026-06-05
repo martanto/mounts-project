@@ -51,7 +51,7 @@ convention = "google"
 
 [lint.isort]
 length-sort = true
-known-first-party = ["mounts"]
+known-first-party = ["mounts_project"]
 section-order = ["future", "standard-library", "first-party", "third-party", "local-folder"]
 combine-as-imports = true
 force-single-line = false
