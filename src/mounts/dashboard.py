@@ -155,6 +155,10 @@ def render_chart(df: pd.DataFrame, data_type: str, volcano: str) -> None:
 
 def main() -> None:
     st.set_page_config(page_title="MOUNTS Dashboard", layout="wide")
+    st.markdown(
+        '<style>[data-testid="stSidebar"] h1 { padding: 0; }</style>',
+        unsafe_allow_html=True,
+    )
 
     df = load_data()
     if df is None:
