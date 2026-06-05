@@ -109,9 +109,16 @@ def set_log_level(level: str) -> None:
         level (str): Desired log level for the console handler. One of
             ``"DEBUG"``, ``"INFO"``, ``"WARNING"``, ``"ERROR"``, or
             ``"CRITICAL"``. Case-insensitive.
+
+    Note:
+        When logging is currently disabled (via :func:`disable_logging`), the
+        new level is recorded for the next :func:`enable_logging` call but no
+        handlers are added — the disable contract is preserved.
     """
     global _console_level
     _console_level = level.upper()
+    if not _logging_enabled:
+        return
     _configure_handlers(DEFAULT_LOG_DIR, console_level=_console_level)
 
 
@@ -124,9 +131,16 @@ def set_log_directory(log_dir: str) -> None:
     Args:
         log_dir (str): Absolute or relative path to the new log directory.
             Created automatically if it does not exist.
+
+    Note:
+        When logging is currently disabled (via :func:`disable_logging`), the
+        new directory is recorded for the next :func:`enable_logging` call but
+        no handlers are added — the disable contract is preserved.
     """
     global DEFAULT_LOG_DIR
     DEFAULT_LOG_DIR = str(ensure_dir(os.path.abspath(log_dir)))
+    if not _logging_enabled:
+        return
     _configure_handlers(DEFAULT_LOG_DIR, console_level=_console_level)
     logger.info(f"Log directory changed to: {DEFAULT_LOG_DIR}")
 
