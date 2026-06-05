@@ -36,8 +36,9 @@ class MountsProject:
     ``overwrite=True``.
 
     Attributes:
-        filter_values (float | None): Lower-bound filter applied to ``value``.
-            Rows with ``value <= filter_values`` are dropped. ``None`` disables
+        filter_values (float | None): Inclusive lower-bound filter applied to
+            ``value``. Rows with ``value < filter_values`` are dropped;
+            ``filter_values=0`` keeps zero readings. ``None`` disables
             filtering.
         output_dir (str): Root directory for cached JSON and exported files.
         overwrite (bool): If ``True``, re-fetch from MOUNTS even when a cached
@@ -62,9 +63,10 @@ class MountsProject:
         """Initialise a :class:`MountsProject` instance.
 
         Args:
-            filter_values (float | None, optional): Lower bound applied to the
-                ``value`` column after extraction. Pass ``None`` to disable.
-                Defaults to ``0.1``.
+            filter_values (float | None, optional): Inclusive lower bound
+                applied to the ``value`` column after extraction. Pass ``None``
+                to disable; pass ``0`` to keep zero readings. Defaults to
+                ``0.1``.
             output_dir (str | None, optional): Root directory for cached JSON
                 and exported CSV/XLSX files. Defaults to ``<cwd>/output``.
             overwrite (bool, optional): Force re-fetching from MOUNTS even when
@@ -125,7 +127,7 @@ class MountsProject:
         df = df.set_index("datetime")
 
         if self.filter_values is not None:
-            df = df[df["value"] > self.filter_values]
+            df = df[df["value"] >= self.filter_values]
 
         return df
 
