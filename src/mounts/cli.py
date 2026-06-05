@@ -5,7 +5,7 @@ Exposes two subcommands:
     mounts save --type csv      # extract + save the default catalog
     mounts dashboard            # launch the Streamlit dashboard
 
-Registered via ``[project.scripts] mounts = "scripts.cli:cli"`` in
+Registered via ``[project.scripts] mounts = "mounts.cli:cli"`` in
 ``pyproject.toml``.
 """
 

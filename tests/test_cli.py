@@ -1,10 +1,10 @@
-"""Tests for the ``mounts`` CLI in ``src/scripts/cli.py``."""
+"""Tests for the ``mounts`` CLI in ``src/mounts/cli.py``."""
 
 import os
 import sys
 
-from scripts import cli as cli_module
-from scripts.cli import cli
+from mounts import cli as cli_module
+from mounts.cli import cli
 
 import pandas as pd
 from click.testing import CliRunner
