@@ -156,23 +156,6 @@ def render_chart(
             hovermode="x unified",
         )
 
-    last = df.index.max()
-    preset_starts = {
-        "3m": last - pd.DateOffset(months=3),
-        "6m": last - pd.DateOffset(months=6),
-        "1y": last - pd.DateOffset(years=1),
-    }
-    buttons = [
-        {
-            "label": label,
-            "method": "relayout",
-            "args": [{"xaxis.range": [start.isoformat(), last.isoformat()]}],
-        }
-        for label, start in preset_starts.items()
-    ] + [
-        {"label": "All", "method": "relayout", "args": [{"xaxis.autorange": True}]},
-    ]
-    fig.update_xaxes(rangeslider={"visible": True})
     fig.update_layout(
         modebar={"orientation": "v"},
         legend={
@@ -182,18 +165,6 @@ def render_chart(
             "xanchor": "center",
             "x": 0.5,
         },
-        updatemenus=[
-            {
-                "type": "buttons",
-                "direction": "right",
-                "buttons": buttons,
-                "x": 0.92,
-                "xanchor": "right",
-                "y": 1.15,
-                "yanchor": "bottom",
-                "showactive": False,
-            }
-        ],
     )
 
     st.plotly_chart(fig, width="stretch")
