@@ -44,12 +44,38 @@ def _find_trace(graph_json: dict, needles: tuple[str, ...]) -> dict:
     )
 
 
+def _extract_trace(
+    graph_json: dict, needles: tuple[str, ...], label: str
+) -> pd.DataFrame:
+    """Build a DataFrame from the trace matching ``needles`` and tag it with ``label``.
+
+    Args:
+        graph_json (dict): Parsed MOUNTS Plotly ``graph`` object.
+        needles (tuple[str, ...]): Case-insensitive substrings searched
+            against each trace's ``name`` field.
+        label (str): Value written into the resulting DataFrame's ``type``
+            column.
+
+    Returns:
+        pd.DataFrame: DataFrame with ``datetime``, ``value``, ``graph``, and
+        ``type`` (= ``label``) columns.
+
+    Raises:
+        KeyError: If no trace matches ``needles``.
+    """
+    trace = _find_trace(graph_json, needles)
+    df = pd.DataFrame.from_dict(
+        {"datetime": trace["x"], "value": trace["y"], "graph": trace["text"]}
+    )
+    df["type"] = label
+    return df
+
+
 def get_so2_values(graph_json: dict) -> pd.DataFrame:
     """Extract the SO2 timeseries from a MOUNTS graph payload.
 
     Locates the trace whose ``name`` contains ``"SO2"`` (case-insensitive) and
-    returns its ``x``/``y``/``text`` arrays as a DataFrame with ``datetime``,
-    ``value``, ``graph``, and ``type`` columns.
+    returns its ``x``/``y``/``text`` arrays as a DataFrame.
 
     Args:
         graph_json (dict): Parsed MOUNTS Plotly ``graph`` object recovered from
@@ -62,20 +88,14 @@ def get_so2_values(graph_json: dict) -> pd.DataFrame:
     Raises:
         KeyError: If no SO2 trace is present in ``graph_json``.
     """
-    trace = _find_trace(graph_json, ("so2",))
-    df = pd.DataFrame.from_dict(
-        {"datetime": trace["x"], "value": trace["y"], "graph": trace["text"]}
-    )
-    df["type"] = "SO2"
-    return df
+    return _extract_trace(graph_json, ("so2",), "SO2")
 
 
 def get_thermal_values(graph_json: dict) -> pd.DataFrame:
     """Extract the thermal timeseries from a MOUNTS graph payload.
 
     Locates the trace whose ``name`` contains ``"thermal"`` (case-insensitive)
-    and returns its ``x``/``y``/``text`` arrays as a DataFrame with ``datetime``,
-    ``value``, ``graph``, and ``type`` columns.
+    and returns its ``x``/``y``/``text`` arrays as a DataFrame.
 
     Args:
         graph_json (dict): Parsed MOUNTS Plotly ``graph`` object recovered from
@@ -88,12 +108,7 @@ def get_thermal_values(graph_json: dict) -> pd.DataFrame:
     Raises:
         KeyError: If no thermal trace is present in ``graph_json``.
     """
-    trace = _find_trace(graph_json, ("thermal",))
-    df = pd.DataFrame.from_dict(
-        {"datetime": trace["x"], "value": trace["y"], "graph": trace["text"]}
-    )
-    df["type"] = "Thermal"
-    return df
+    return _extract_trace(graph_json, ("thermal",), "Thermal")
 
 
 _GRAPH_START_RE = re.compile(r"\bvar\s+graph\s*=\s*\{")
