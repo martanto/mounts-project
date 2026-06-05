@@ -96,12 +96,17 @@ def get_thermal_values(graph_json: dict) -> pd.DataFrame:
     return df
 
 
+_GRAPH_START_RE = re.compile(r"\bvar\s+graph\s*=\s*\{")
+
+
 def get_json_from_javascript(response: requests.Response) -> dict:
     """Extract and parse the ``var graph = {...}`` blob from a MOUNTS response.
 
     MOUNTS has no public API; the timeseries page embeds its Plotly data as a
-    JavaScript object literal. This function regex-locates that literal and
-    parses it as JSON.
+    JavaScript object literal. This function locates that literal by walking
+    the body and matching braces while tracking JSON string boundaries (so
+    apostrophes, escaped quotes, and ``}`` characters inside strings don't
+    truncate or overshoot the match), then parses the slice as JSON.
 
     Args:
         response (requests.Response): HTTP response from a MOUNTS
@@ -111,17 +116,42 @@ def get_json_from_javascript(response: requests.Response) -> dict:
         dict: The parsed graph object containing Plotly traces under ``data``.
 
     Raises:
-        ValueError: If the ``var graph = {...}`` assignment cannot be located in
-            the response body.
+        ValueError: If the ``var graph = {...}`` assignment cannot be located,
+            or the object literal has unbalanced braces.
     """
-    var_graph = re.search(r"(?:^|\s|;)var\s+graph\s*=\s*([^']+})", response.text)
+    text = response.text
+    match = _GRAPH_START_RE.search(text)
+    if match is None:
+        raise ValueError(
+            "Could not locate 'var graph = {...}' assignment in MOUNTS response"
+        )
 
-    if var_graph:
-        string_graph = var_graph.group(1)
-        json_graph = json.loads(string_graph)
-        return json_graph
+    start = match.end() - 1
+    depth = 0
+    in_string = False
+    escape = False
 
-    raise ValueError(f"Could not extract graph from {response.text}")
+    for i in range(start, len(text)):
+        c = text[i]
+        if escape:
+            escape = False
+            continue
+        if in_string:
+            if c == "\\":
+                escape = True
+            elif c == '"':
+                in_string = False
+            continue
+        if c == '"':
+            in_string = True
+        elif c == "{":
+            depth += 1
+        elif c == "}":
+            depth -= 1
+            if depth == 0:
+                return json.loads(text[start : i + 1])
+
+    raise ValueError("Unbalanced braces in 'var graph = {...}' assignment")
 
 
 def slugify(text: str, hyphen: str = "-") -> str:
