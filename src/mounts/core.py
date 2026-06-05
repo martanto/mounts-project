@@ -144,20 +144,22 @@ class MountsProject:
         """
         volcanoes = volcanoes if volcanoes is not None else _VOLCANOES
 
-        data: dict[str, pd.DataFrame] = {}
-        catalogs: list[dict[str, Any]] = []
+        self.data = {}
+        self.catalogs = []
         for volcano in volcanoes:
-            df = self.extract_single_volcano(volcano["name"], volcano["code"])
-            data[volcano["name"]] = df
-            catalog = {
-                "name": volcano["name"],
-                "code": volcano["code"],
-                "updated_at": df.index.max(),
-            }
-            catalogs.append(catalog)
-
-        self.data = data
-        self.catalogs = catalogs
+            try:
+                df = self.extract_single_volcano(volcano["name"], volcano["code"])
+            except Exception as e:
+                logger.error(f"[{volcano['name']}] extract failed: {e}")
+                continue
+            self.data[volcano["name"]] = df
+            self.catalogs.append(
+                {
+                    "name": volcano["name"],
+                    "code": volcano["code"],
+                    "updated_at": df.index.max(),
+                }
+            )
 
         return self
 
