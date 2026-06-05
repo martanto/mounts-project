@@ -20,8 +20,10 @@ from loguru import logger
 _GENERAL_LOG_RETENTION = "30 days"
 _ERROR_LOG_RETENTION = "90 days"
 
-# Tracks whether logging is currently enabled.
-_logging_enabled: bool = True
+# Tracks whether logging is currently enabled. Initialised from DISABLE_LOGGING
+# so a subprocess that inherits the env var doesn't end up with the flag and the
+# environment disagreeing (which made enable_logging() a silent no-op).
+_logging_enabled: bool = os.environ.get("DISABLE_LOGGING") != "1"
 
 DEFAULT_LOG_DIR: str = str(ensure_dir(os.path.join(os.getcwd(), "logs")))
 
