@@ -3,7 +3,7 @@
 import pandas as pd
 import pytest
 
-from mounts.core import MountsProject
+from mounts_project.core import MountsProject
 
 
 def test_extract_isolates_per_volcano_failures(

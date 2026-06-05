@@ -11,7 +11,7 @@ subprocess workers inherit the disabled state).
 import os
 import sys
 
-from mounts.utils import ensure_dir
+from mounts_project.utils import ensure_dir
 
 from loguru import logger
 

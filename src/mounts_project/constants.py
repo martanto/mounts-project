@@ -1,7 +1,7 @@
 """Package constants.
 
 Holds the MOUNTS base URLs, the default Indonesian volcano catalog used by
-:meth:`mounts.core.MountsProject.extract` when no ``volcanoes`` argument is
+:meth:`mounts_project.core.MountsProject.extract` when no ``volcanoes`` argument is
 provided, and the path / unit / color constants consumed by the Streamlit
 dashboard.
 """

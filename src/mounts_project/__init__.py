@@ -1,16 +1,16 @@
 """Unofficial Python client for the MOUNTS project.
 
 Scrapes SO2 and thermal timeseries from http://www.mounts-project.com and
-exposes them as pandas DataFrames. See :class:`mounts.core.MountsProject` for
-the main entry point.
+exposes them as pandas DataFrames. See :class:`mounts_project.core.MountsProject`
+for the main entry point.
 """
 
 from importlib.metadata import version
 
-from mounts.core import MountsProject
+from mounts_project.core import MountsProject
 
 
-__version__ = version("mounts")
+__version__ = version("mounts-project")
 __author__ = "Martanto"
 __author_email__ = "martanto@live.com"
 __license__ = "MIT"

@@ -1,11 +1,11 @@
-"""CLI entry point for the mounts package.
+"""CLI entry point for the mounts-project package.
 
 Exposes two subcommands:
 
     mounts save --type csv      # extract + save the default catalog
     mounts dashboard            # launch the Streamlit dashboard
 
-Registered via ``[project.scripts] mounts = "mounts.cli:cli"`` in
+Registered via ``[project.scripts] mounts = "mounts_project.cli:cli"`` in
 ``pyproject.toml``.
 """
 
@@ -14,13 +14,13 @@ import subprocess
 from typing import Literal, cast
 from importlib.resources import files
 
-from mounts import MountsProject
+from mounts_project import MountsProject
 
 import click
 
 
 @click.group()
-@click.version_option(package_name="mounts")
+@click.version_option(package_name="mounts-project")
 def cli() -> None:
     """Command-line interface for the MOUNTS scraper and dashboard."""
 
@@ -75,7 +75,7 @@ def dashboard(streamlit_args: tuple[str, ...]) -> None:
 
         mounts dashboard --server.port 9000
     """
-    dashboard_path = files("mounts").joinpath("dashboard.py")
+    dashboard_path = files("mounts_project").joinpath("dashboard.py")
     cmd = [
         sys.executable,
         "-m",

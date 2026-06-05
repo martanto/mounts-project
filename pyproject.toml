@@ -3,7 +3,7 @@ requires = ["uv_build<0.12"]
 build-backend = "uv_build"
 
 [project]
-name =  "mounts"
+name = "mounts-project"
 version = "0.1.0"
 authors = [
     {name = "Martanto", email = "martanto@live.com"},
@@ -46,13 +46,13 @@ dev = [
 ]
 
 [project.scripts]
-mounts = "mounts.cli:cli"
+mounts = "mounts_project.cli:cli"
 
 [tool.uv]
 cache-dir = "./.cache/uv"
 
 [tool.uv.build-backend]
-module-name = "mounts"
+module-name = "mounts_project"
 
 [project.urls]
 Homepage = "https://github.com/martanto/mounts"
