@@ -23,6 +23,9 @@ import pandas as pd
 import requests
 
 
+_REQUEST_TIMEOUT = 30
+
+
 class MountsProject:
     """Orchestrator for scraping and exporting MOUNTS timeseries data.
 
@@ -245,7 +248,8 @@ class MountsProject:
 
         Raises:
             requests.exceptions.RequestException: If the HTTP request to MOUNTS
-                fails.
+                fails, times out (after ``_REQUEST_TIMEOUT`` seconds), or returns
+                a non-2xx status.
         """
         url = _MOUNTS_TIMESERIES_URL + "/" + str(code)
 
@@ -265,7 +269,8 @@ class MountsProject:
             if self.verbose:
                 logger.info(f"Extracting {name} ... ")
 
-            response = requests.get(url)
+            response = requests.get(url, timeout=_REQUEST_TIMEOUT)
+            response.raise_for_status()
             graph_json = get_json_from_javascript(response)
 
             with open(json_filepath, "w") as write_file:
