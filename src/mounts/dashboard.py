@@ -23,6 +23,9 @@ XLSX_PATH = os.path.join(OUTPUT_DIR, "all-volcanoes.xlsx")
 SO2_UNIT = "tons/day"
 THERMAL_UNIT = "km²"
 
+SO2_COLOR = "orange"
+THERMAL_COLOR = "red"
+
 
 @st.cache_data
 def load_data() -> pd.DataFrame | None:
@@ -81,6 +84,7 @@ def render_chart(df: pd.DataFrame, data_type: str, volcano: str) -> None:
     """Render the Plotly time series for the selected type(s)."""
     if data_type in ("SO2", "Thermal"):
         unit = SO2_UNIT if data_type == "SO2" else THERMAL_UNIT
+        color = SO2_COLOR if data_type == "SO2" else THERMAL_COLOR
         fig = go.Figure()
         fig.add_trace(
             go.Scatter(
@@ -88,6 +92,8 @@ def render_chart(df: pd.DataFrame, data_type: str, volcano: str) -> None:
                 y=df["value"],
                 mode="lines+markers",
                 name=data_type,
+                line={"color": color},
+                marker={"color": color},
                 hovertemplate=(
                     "%{x|%Y-%m-%d %H:%M}<br>"
                     f"<b>%{{y:,.2f}}</b> {unit}<extra></extra>"
@@ -111,6 +117,8 @@ def render_chart(df: pd.DataFrame, data_type: str, volcano: str) -> None:
                 y=so2["value"],
                 mode="lines+markers",
                 name="SO2",
+                line={"color": SO2_COLOR},
+                marker={"color": SO2_COLOR},
                 hovertemplate=(
                     f"%{{x|%Y-%m-%d %H:%M}}<br><b>%{{y:,.2f}}</b> {SO2_UNIT}<extra>SO2</extra>"
                 ),
@@ -123,6 +131,8 @@ def render_chart(df: pd.DataFrame, data_type: str, volcano: str) -> None:
                 y=thermal["value"],
                 mode="lines+markers",
                 name="Thermal",
+                line={"color": THERMAL_COLOR},
+                marker={"color": THERMAL_COLOR},
                 hovertemplate=(
                     f"%{{x|%Y-%m-%d %H:%M}}<br><b>%{{y:,.2f}}</b> {THERMAL_UNIT}"
                     "<extra>Thermal</extra>"
