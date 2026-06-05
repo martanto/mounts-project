@@ -14,11 +14,41 @@ import pandas as pd
 import requests
 
 
+def _find_trace(graph_json: dict, needles: tuple[str, ...]) -> dict:
+    """Return the first Plotly trace whose ``name`` matches any of ``needles``.
+
+    Case-insensitive substring match against the trace's ``name`` field. Raises
+    ``KeyError`` with a descriptive message if no trace matches — this is the
+    signal that MOUNTS has changed its page layout (CLAUDE.md flags trace
+    ordering as the first thing to break, so we trade silent miscategorisation
+    for a loud failure).
+
+    Args:
+        graph_json (dict): Parsed MOUNTS Plotly ``graph`` object.
+        needles (tuple[str, ...]): Substrings to look for in each trace's
+            ``name`` (case-insensitive).
+
+    Returns:
+        dict: The matching Plotly trace.
+
+    Raises:
+        KeyError: If no trace in ``graph_json["data"]`` matches ``needles``.
+    """
+    for trace in graph_json.get("data", []):
+        name = str(trace.get("name", "")).lower()
+        if any(needle.lower() in name for needle in needles):
+            return trace
+    raise KeyError(
+        f"No MOUNTS trace matching {needles!r}; available names: "
+        f"{[t.get('name') for t in graph_json.get('data', [])]}"
+    )
+
+
 def get_so2_values(graph_json: dict) -> pd.DataFrame:
     """Extract the SO2 timeseries from a MOUNTS graph payload.
 
-    Reads the SO2 series from ``graph_json["data"][2]`` (a fixed position in the
-    MOUNTS Plotly blob) and returns it as a DataFrame with ``datetime``,
+    Locates the trace whose ``name`` contains ``"SO2"`` (case-insensitive) and
+    returns its ``x``/``y``/``text`` arrays as a DataFrame with ``datetime``,
     ``value``, ``graph``, and ``type`` columns.
 
     Args:
@@ -28,13 +58,14 @@ def get_so2_values(graph_json: dict) -> pd.DataFrame:
     Returns:
         pd.DataFrame: DataFrame with columns ``datetime``, ``value``, ``graph``,
         and ``type`` (always ``"SO2"``).
+
+    Raises:
+        KeyError: If no SO2 trace is present in ``graph_json``.
     """
-    so2_values = {
-        "datetime": graph_json["data"][2]["x"],
-        "value": graph_json["data"][2]["y"],
-        "graph": graph_json["data"][2]["text"],
-    }
-    df = pd.DataFrame.from_dict(so2_values)
+    trace = _find_trace(graph_json, ("so2",))
+    df = pd.DataFrame.from_dict(
+        {"datetime": trace["x"], "value": trace["y"], "graph": trace["text"]}
+    )
     df["type"] = "SO2"
     return df
 
@@ -42,8 +73,8 @@ def get_so2_values(graph_json: dict) -> pd.DataFrame:
 def get_thermal_values(graph_json: dict) -> pd.DataFrame:
     """Extract the thermal timeseries from a MOUNTS graph payload.
 
-    Reads the thermal series from ``graph_json["data"][0]`` (a fixed position in
-    the MOUNTS Plotly blob) and returns it as a DataFrame with ``datetime``,
+    Locates the trace whose ``name`` contains ``"thermal"`` (case-insensitive)
+    and returns its ``x``/``y``/``text`` arrays as a DataFrame with ``datetime``,
     ``value``, ``graph``, and ``type`` columns.
 
     Args:
@@ -53,13 +84,14 @@ def get_thermal_values(graph_json: dict) -> pd.DataFrame:
     Returns:
         pd.DataFrame: DataFrame with columns ``datetime``, ``value``, ``graph``,
         and ``type`` (always ``"Thermal"``).
+
+    Raises:
+        KeyError: If no thermal trace is present in ``graph_json``.
     """
-    thermal_values = {
-        "datetime": graph_json["data"][0]["x"],
-        "value": graph_json["data"][0]["y"],
-        "graph": graph_json["data"][0]["text"],
-    }
-    df = pd.DataFrame.from_dict(thermal_values)
+    trace = _find_trace(graph_json, ("thermal",))
+    df = pd.DataFrame.from_dict(
+        {"datetime": trace["x"], "value": trace["y"], "graph": trace["text"]}
+    )
     df["type"] = "Thermal"
     return df
 
