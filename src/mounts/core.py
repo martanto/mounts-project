@@ -171,9 +171,7 @@ class MountsProject:
 
         return self
 
-    def save(
-        self, filetype: Literal["csv", "xlsx"] = "csv", merge: bool = True
-    ) -> Self:
+    def save(self, filetype: Literal["csv", "xlsx"] = "csv") -> Self:
         """Write per-volcano files plus a merged ``all-volcanoes`` export.
 
         Writes each DataFrame in ``self.data`` to
@@ -183,8 +181,6 @@ class MountsProject:
         Args:
             filetype (Literal["csv", "xlsx"], optional): Output format. Defaults
                 to ``"csv"``.
-            merge (bool, optional): Reserved for future use; currently the
-                merged file is always written. Defaults to ``True``.
 
         Returns:
             Self: This :class:`MountsProject` instance, to enable chaining.
@@ -196,9 +192,8 @@ class MountsProject:
                 custom list).
         """
         if len(self.data) == 0:
-            raise RuntimeError(
-                "No data to save; call extract() first."
-            )
+            logger.warning("No data to save. Call call extract ,,,")
+            self.extract()
 
         save_dir = "csv" if filetype == "csv" else "xlsx"
         save_dir = os.path.join(self.output_dir, save_dir)
