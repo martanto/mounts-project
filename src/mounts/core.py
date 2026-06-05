@@ -120,8 +120,8 @@ class MountsProject:
         df = pd.concat([so2, thermal])
 
         df["datetime"] = pd.to_datetime(df["datetime"])
-        df["date"] = df["datetime"].apply(lambda x: x.strftime("%Y-%m-%d"))
-        df["time"] = df["datetime"].apply(lambda x: x.strftime("%H:%M:%S"))
+        df["date"] = df["datetime"].dt.strftime("%Y-%m-%d")
+        df["time"] = df["datetime"].dt.strftime("%H:%M:%S")
         df["code"] = code
         df["name"] = name
         df = df.set_index("datetime")
