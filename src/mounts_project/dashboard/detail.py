@@ -30,7 +30,8 @@ from plotly.subplots import make_subplots
 
 
 _DOW_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-_GALLERY_PAGE_SIZE = 32  # 4 rows × 8 columns
+_GALLERY_PAGE_SIZES = [50, 100, 200]
+_GALLERY_GRID_COLS = 10
 
 
 def _iso_to_date(year: int, week: int, dow: int) -> str:
@@ -189,32 +190,41 @@ def _image_gallery_section(
                 )
                 continue
             total = len(sub)
-            total_pages = max(1, (total + _GALLERY_PAGE_SIZE - 1) // _GALLERY_PAGE_SIZE)
+            size_key = f"gallery_size_{volcano}_{kind}"
             page_key = f"gallery_page_{volcano}_{kind}"
+            ctrl_cols = st.columns([1, 1, 6])
+            with ctrl_cols[0]:
+                page_size = st.selectbox(
+                    "Per page",
+                    options=_GALLERY_PAGE_SIZES,
+                    key=size_key,
+                )
+            total_pages = max(1, (total + page_size - 1) // page_size)
             if page_key in st.session_state:
                 st.session_state[page_key] = min(
                     max(int(st.session_state[page_key]), 1), total_pages
                 )
-            if total_pages > 1:
-                page = st.number_input(
-                    "Page",
-                    min_value=1,
-                    max_value=total_pages,
-                    value=1,
-                    step=1,
-                    key=page_key,
-                )
-            else:
-                page = 1
-            start = (int(page) - 1) * _GALLERY_PAGE_SIZE
-            end = min(start + _GALLERY_PAGE_SIZE, total)
+            with ctrl_cols[1]:
+                if total_pages > 1:
+                    page = st.number_input(
+                        "Page",
+                        min_value=1,
+                        max_value=total_pages,
+                        value=1,
+                        step=1,
+                        key=page_key,
+                    )
+                else:
+                    page = 1
+            start = (int(page) - 1) * page_size
+            end = min(start + page_size, total)
             st.caption(
                 f"Showing {start + 1}–{end} of {total} (page {page} / {total_pages})"
             )
             page_sub = sub.iloc[start:end]
-            cols = st.columns(8)
+            cols = st.columns(_GALLERY_GRID_COLS)
             for i, (ts, row) in enumerate(page_sub.iterrows()):
-                with cols[i % 8]:
+                with cols[i % _GALLERY_GRID_COLS]:
                     st.image(
                         row["local_path"],
                         caption=ts.strftime("%Y-%m-%d %H:%M"),
