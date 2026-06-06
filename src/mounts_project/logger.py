@@ -10,6 +10,7 @@ subprocess workers inherit the disabled state).
 
 import os
 import sys
+import atexit
 
 from mounts_project.utils import ensure_dir
 
@@ -81,6 +82,9 @@ def _configure_handlers(log_dir: str, console_level: str = "INFO") -> None:
 # Skip if the parent process disabled logging (env var is inherited by workers).
 if os.environ.get("DISABLE_LOGGING") != "1":
     _configure_handlers(DEFAULT_LOG_DIR)
+    # Drain the enqueue=True worker on interpreter exit; otherwise the process
+    # hangs on Windows after the main thread finishes (cursor "blinks" forever).
+    atexit.register(logger.remove)
 
 
 def get_logger():
