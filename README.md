@@ -1,6 +1,6 @@
 # mounts-project
 
-![Version](https://img.shields.io/badge/version-0.2.0-blue)
+![Version](https://img.shields.io/badge/version-0.2.1-blue)
 ![Python](https://img.shields.io/badge/python-3.11%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Status](https://img.shields.io/badge/status-active%20development-orange)
@@ -16,10 +16,12 @@ DataFrames, ready to be written to CSV or XLSX.
   <tr>
     <td align="center"><img src="https://raw.githubusercontent.com/martanto/mounts-project/main/assets/dashboard-1.jpg" alt="Dashboard overview" /></td>
     <td align="center"><img src="https://raw.githubusercontent.com/martanto/mounts-project/main/assets/dashboard-2.jpg" alt="Dashboard detail" /></td>
+    <td align="center"><img src="https://raw.githubusercontent.com/martanto/mounts-project/main/assets/dashboard-3.jpg" alt="Thermal daily max calendar" /></td>
   </tr>
   <tr>
-    <td align="center"><img src="https://raw.githubusercontent.com/martanto/mounts-project/main/assets/dashboard-3.jpg" alt="Thermal daily max calendar" /></td>
     <td align="center"><img src="https://raw.githubusercontent.com/martanto/mounts-project/main/assets/anomaly-overlay.jpg" alt="Anomaly overlay on SO2 vs Thermal" /></td>
+    <td align="center"><img src="https://raw.githubusercontent.com/martanto/mounts-project/main/assets/image-gallery-1.jpg" alt="Anomaly overlay on SO2 vs Thermal" /></td>
+    <td align="center"><img src="https://raw.githubusercontent.com/martanto/mounts-project/main/assets/image-gallery-2.jpg" alt="Anomaly overlay on SO2 vs Thermal" /></td>
   </tr>
 </table>
 
@@ -130,6 +132,15 @@ uv run mounts dashboard
 The dashboard reads `output/all-volcanoes.csv` from the current working
 directory. If it does not exist yet, click **Refresh data** in the sidebar
 or run `uv run mounts save --type csv` once to populate it.
+
+The **Volcano detail** page also includes an image gallery (since `0.2.1`)
+showing the SO2 and thermal snapshots previously fetched via
+`extract(extract_image=True)`. Images live under
+`output/images/<slug>/{so2,thermal}/` and are matched to the active volcano,
+data type, and date range from the existing selectors — no extra index file
+is required. The gallery renders as a 10-column grid with a per-tab
+**Per page** dropdown (50 / 100 / 200) and a page selector, both kept in a
+narrow control group above the thumbnails.
 
 ## Quick Start
 
@@ -317,12 +328,12 @@ Orchestrator that holds the scraped data and drives the
 
 **Attributes**
 
-| Attribute  | Type                          | Description                                                                   |
-|------------|-------------------------------|-------------------------------------------------------------------------------|
-| `data`     | `dict[str, pandas.DataFrame]` | Per-volcano DataFrames keyed by volcano name. Populated by `extract()`.       |
-| `catalogs` | `list[dict[str, Any]]`        | Per-volcano metadata: `name`, `code`, `updated_at`. Populated by `extract()`. |
+| Attribute  | Type                          | Description                                                                                                    |
+|------------|-------------------------------|----------------------------------------------------------------------------------------------------------------|
+| `data`     | `dict[str, pandas.DataFrame]` | Per-volcano DataFrames keyed by volcano name. Populated by `extract()`.                                        |
+| `catalogs` | `list[dict[str, Any]]`        | Per-volcano metadata: `name`, `code`, `updated_at`. Populated by `extract()`.                                  |
 | `figures`  | `list[dict[str, Any]]`        | Per-volcano figure index: `name`, `code`, `index`, `so2`, `thermal` image URL lists. Populated by `extract()`. |
-| `files`    | `list[str]`                   | Paths of files written by `save()`.                                           |
+| `files`    | `list[str]`                   | Paths of files written by `save()`.                                                                            |
 
 **Methods**
 
@@ -377,12 +388,12 @@ From `mounts_project.download`. All downloaders run in parallel via a
 TLS handshakes). Individual URL failures are logged and skipped so a bad URL does not
 abort the batch. URLs are resolved against the MOUNTS static asset host.
 
-| Function                                                                              | Description                                                                                                                       |
-|---------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
-| `download_image(image_url, output_dir=None, overwrite=False, verbose=False, session=None)` | Download a single image. Skips re-downloading when the basename already exists unless `overwrite=True`.                           |
-| `download_images(image_urls, output_dir=None, overwrite=False, verbose=False, max_workers=8)` | Bulk download a flat list of image URLs into `output_dir` (defaults to `<cwd>/output/images`).                                    |
+| Function                                                                                                  | Description                                                                                                             |
+|-----------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------|
+| `download_image(image_url, output_dir=None, overwrite=False, verbose=False, session=None)`                | Download a single image. Skips re-downloading when the basename already exists unless `overwrite=True`.                 |
+| `download_images(image_urls, output_dir=None, overwrite=False, verbose=False, max_workers=8)`             | Bulk download a flat list of image URLs into `output_dir` (defaults to `<cwd>/output/images`).                          |
 | `download_images_from_dict(figures_dict, output_dir=None, overwrite=False, verbose=False, max_workers=8)` | For each `{"name", "so2", "thermal"}` entry, download both image lists into `<output_dir>/<slug(name)>/{so2,thermal}/`. |
-| `download_images_from_json(figures_json, output_dir=None, overwrite=False, verbose=False, max_workers=8)` | Same as above, but reads the figure list from a JSON file (such as the `figures.json` written by `extract()`).         |
+| `download_images_from_json(figures_json, output_dir=None, overwrite=False, verbose=False, max_workers=8)` | Same as above, but reads the figure list from a JSON file (such as the `figures.json` written by `extract()`).          |
 
 Standalone use, re-using the `figures.json` written by a previous `extract()` call:
 

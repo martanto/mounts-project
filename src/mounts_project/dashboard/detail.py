@@ -1,8 +1,11 @@
 """Volcano detail page: per-volcano time series with anomaly, distribution, calendar."""
 
+import os
+
 from mounts_project.constants import (
     SO2_UNIT,
     SO2_COLOR,
+    OUTPUT_DIR,
     THERMAL_UNIT,
     THERMAL_COLOR,
     ANOMALY_SIGMA_DEFAULT,
@@ -13,6 +16,7 @@ from mounts_project.dashboard.data import (
     refresh_data,
     compute_anomalies,
 )
+from mounts_project.dashboard.images import resolve_image_paths
 from mounts_project.dashboard.components import (
     render_chart,
     render_metrics,
@@ -26,6 +30,8 @@ from plotly.subplots import make_subplots
 
 
 _DOW_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+_GALLERY_PAGE_SIZES = [50, 100, 200]
+_GALLERY_GRID_COLS = 10
 
 
 def _iso_to_date(year: int, week: int, dow: int) -> str:
@@ -154,6 +160,77 @@ def _calendar_heatmap(df: pd.DataFrame, data_type: str) -> go.Figure:
     return fig
 
 
+def _image_gallery_section(
+    filtered: pd.DataFrame, data_type: str, volcano: str
+) -> None:
+    """Render the tabbed SO2 / Thermal grid of downloaded MOUNTS snapshots."""
+    images_root = os.path.join(OUTPUT_DIR, "images")
+    resolved = resolve_image_paths(filtered, images_root)
+
+    st.subheader("Image gallery")
+    if len(resolved):
+        st.caption(
+            f"{int(resolved['exists'].sum())} of {len(resolved)} images on disk"
+        )
+    else:
+        st.caption("No image references in this date range.")
+
+    so2_tab, thermal_tab = st.tabs(["SO2", "Thermal"])
+    for tab, kind in ((so2_tab, "SO2"), (thermal_tab, "Thermal")):
+        with tab:
+            if data_type not in ("Both", kind):
+                st.caption("Hidden by Data type selector.")
+                continue
+            sub = resolved[(resolved["type"] == kind) & resolved["exists"]]
+            sub = sub.sort_index(ascending=False)
+            if sub.empty:
+                st.info(
+                    f"No downloaded {kind} images for this date range. "
+                    "Run `MountsProject().extract(extract_image=True)` to download."
+                )
+                continue
+            total = len(sub)
+            size_key = f"gallery_size_{volcano}_{kind}"
+            page_key = f"gallery_page_{volcano}_{kind}"
+            ctrl_cols = st.columns([1, 1, 6])
+            with ctrl_cols[0]:
+                page_size = st.selectbox(
+                    "Per page",
+                    options=_GALLERY_PAGE_SIZES,
+                    key=size_key,
+                )
+            total_pages = max(1, (total + page_size - 1) // page_size)
+            if page_key in st.session_state:
+                st.session_state[page_key] = min(
+                    max(int(st.session_state[page_key]), 1), total_pages
+                )
+            with ctrl_cols[1]:
+                if total_pages > 1:
+                    page = st.number_input(
+                        "Page",
+                        min_value=1,
+                        max_value=total_pages,
+                        step=1,
+                        key=page_key,
+                    )
+                else:
+                    page = 1
+            start = (int(page) - 1) * page_size
+            end = min(start + page_size, total)
+            st.caption(
+                f"Showing {start + 1}–{end} of {total} (page {page} / {total_pages})"
+            )
+            page_sub = sub.iloc[start:end]
+            cols = st.columns(_GALLERY_GRID_COLS)
+            for i, (ts, row) in enumerate(page_sub.iterrows()):
+                with cols[i % _GALLERY_GRID_COLS]:
+                    st.image(
+                        row["local_path"],
+                        caption=ts.strftime("%Y-%m-%d %H:%M"),
+                        width="stretch",
+                    )
+
+
 def render_detail_page() -> None:
     """Entry point for the Volcano detail page."""
     df = load_data()
@@ -245,6 +322,8 @@ def render_detail_page() -> None:
     types = ["SO2", "Thermal"] if data_type == "Both" else [data_type]
     for t in types:
         st.plotly_chart(_calendar_heatmap(filtered, t), width="stretch")
+
+    _image_gallery_section(filtered, data_type, volcano)
 
     with st.expander("Underlying data", expanded=False):
         st.dataframe(filtered, width="stretch")
