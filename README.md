@@ -1,6 +1,6 @@
 # mounts-project
 
-![Version](https://img.shields.io/badge/version-0.1.1-blue)
+![Version](https://img.shields.io/badge/version-0.2.0-blue)
 ![Python](https://img.shields.io/badge/python-3.11%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Status](https://img.shields.io/badge/status-active%20development-orange)
@@ -43,6 +43,7 @@ damages arising out of any use of, or inability to use, the data.
 - [Use of the data](#use-of-the-data)
 - [API Reference](#api-reference)
     - [`MountsProject`](#mountsprojectfilter_values01-output_dirnone-overwritefalse-verbosefalse)
+    - [Image downloads](#image-downloads)
     - [Utility functions](#utility-functions)
     - [Logging helpers](#logging-helpers)
 
@@ -192,6 +193,14 @@ volcanoes = [
 MountsProject().extract(volcanoes=volcanoes).save()
 ```
 
+To also download the SO2 and thermal images served by MOUNTS, set `extract_image=True`.
+Images land under `<output_dir>/images/<slug>/{so2,thermal}/`, and a `figures.json`
+index is written next to the JSON cache:
+
+```python
+MountsProject(verbose=True).extract(extract_image=True, max_workers=8).save()
+```
+
 ## About the project
 
 MOUNTS is a project conceptualized and led by Sébastien Valade since April 2017. Its aim is
@@ -312,17 +321,22 @@ Orchestrator that holds the scraped data and drives the
 |------------|-------------------------------|-------------------------------------------------------------------------------|
 | `data`     | `dict[str, pandas.DataFrame]` | Per-volcano DataFrames keyed by volcano name. Populated by `extract()`.       |
 | `catalogs` | `list[dict[str, Any]]`        | Per-volcano metadata: `name`, `code`, `updated_at`. Populated by `extract()`. |
+| `figures`  | `list[dict[str, Any]]`        | Per-volcano figure index: `name`, `code`, `index`, `so2`, `thermal` image URL lists. Populated by `extract()`. |
 | `files`    | `list[str]`                   | Paths of files written by `save()`.                                           |
 
 **Methods**
 
-#### `extract(volcanoes=None) -> Self`
+#### `extract(volcanoes=None, extract_image=False, max_workers=8) -> Self`
 
-Fetch timeseries for a list of volcanoes and populate `self.data` and `self.catalogs`.
+Fetch timeseries for a list of volcanoes and populate `self.data`, `self.catalogs`, and
+`self.figures`. Also writes `<output_dir>/figures.json` (the figure index used by
+`download_images_from_json`).
 
-| Parameter   | Type                           | Default          | Description                                                                                                |
-|-------------|--------------------------------|------------------|------------------------------------------------------------------------------------------------------------|
-| `volcanoes` | `list[dict[str, str]] \| None` | built-in catalog | List of `{"name": ..., "code": ...}` entries. When `None`, uses the bundled 12-volcano Indonesian catalog. |
+| Parameter       | Type                           | Default          | Description                                                                                                |
+|-----------------|--------------------------------|------------------|------------------------------------------------------------------------------------------------------------|
+| `volcanoes`     | `list[dict[str, str]] \| None` | built-in catalog | List of `{"name": ..., "code": ...}` entries. When `None`, uses the bundled 12-volcano Indonesian catalog. |
+| `extract_image` | `bool`                         | `False`          | Also download SO2 and thermal images into `<output_dir>/images/<slug>/{so2,thermal}/`.                     |
+| `max_workers`   | `int`                          | `8`              | Maximum concurrent download threads when `extract_image=True`.                                             |
 
 Returns `self` for chaining.
 
@@ -355,6 +369,32 @@ Writes:
 - `<output_dir>/all-volcanoes.<filetype>` (concatenated)
 
 Returns `self` for chaining.
+
+### Image downloads
+
+From `mounts_project.download`. All downloaders run in parallel via a
+`ThreadPoolExecutor` that shares a single `requests.Session` (pooled connections, reused
+TLS handshakes). Individual URL failures are logged and skipped so a bad URL does not
+abort the batch. URLs are resolved against the MOUNTS static asset host.
+
+| Function                                                                              | Description                                                                                                                       |
+|---------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------|
+| `download_image(image_url, output_dir=None, overwrite=False, verbose=False, session=None)` | Download a single image. Skips re-downloading when the basename already exists unless `overwrite=True`.                           |
+| `download_images(image_urls, output_dir=None, overwrite=False, verbose=False, max_workers=8)` | Bulk download a flat list of image URLs into `output_dir` (defaults to `<cwd>/output/images`).                                    |
+| `download_images_from_dict(figures_dict, output_dir=None, overwrite=False, verbose=False, max_workers=8)` | For each `{"name", "so2", "thermal"}` entry, download both image lists into `<output_dir>/<slug(name)>/{so2,thermal}/`. |
+| `download_images_from_json(figures_json, output_dir=None, overwrite=False, verbose=False, max_workers=8)` | Same as above, but reads the figure list from a JSON file (such as the `figures.json` written by `extract()`).         |
+
+Standalone use, re-using the `figures.json` written by a previous `extract()` call:
+
+```python
+from mounts_project.download import download_images_from_json
+
+download_images_from_json(
+    "output/figures.json",
+    output_dir="output/images",
+    verbose=True,
+)
+```
 
 ### Utility functions
 
