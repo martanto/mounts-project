@@ -138,7 +138,7 @@ or run `uv run mounts save --type csv` once to populate it.
 
 The **Volcano detail** page also includes an image gallery (since `0.2.1`)
 showing the SO2 and thermal snapshots previously fetched via
-`extract(extract_image=True)`. Images live under
+`save(extract_image=True)`. Images live under
 `output/images/<slug>/{so2,thermal}/` and are matched to the active volcano,
 data type, and date range from the existing selectors — no extra index file
 is required. The gallery renders as a 10-column grid with a per-tab
@@ -207,12 +207,12 @@ volcanoes = [
 MountsProject().extract(volcanoes=volcanoes).save()
 ```
 
-To also download the SO2 and thermal images served by MOUNTS, set `extract_image=True`.
-Images land under `<output_dir>/images/<slug>/{so2,thermal}/`, and a `figures.json`
-index is written next to the JSON cache:
+To also download the SO2 and thermal images served by MOUNTS, set `extract_image=True`
+on `save()`. Images land under `<output_dir>/images/<slug>/{so2,thermal}/`, and a
+`figures.json` index is written next to the JSON cache by `extract()`:
 
 ```python
-MountsProject(verbose=True).extract(extract_image=True, max_workers=8).save()
+MountsProject(verbose=True).extract().save(extract_image=True, max_workers=8)
 ```
 
 ## About the project
@@ -340,17 +340,15 @@ Orchestrator that holds the scraped data and drives the
 
 **Methods**
 
-#### `extract(volcanoes=None, extract_image=False, max_workers=8) -> Self`
+#### `extract(volcanoes=None) -> Self`
 
 Fetch timeseries for a list of volcanoes and populate `self.data`, `self.catalogs`, and
 `self.figures`. Also writes `<output_dir>/figures.json` (the figure index used by
 `download_images_from_json`).
 
-| Parameter       | Type                           | Default          | Description                                                                                                |
-|-----------------|--------------------------------|------------------|------------------------------------------------------------------------------------------------------------|
-| `volcanoes`     | `list[dict[str, str]] \| None` | built-in catalog | List of `{"name": ..., "code": ...}` entries. When `None`, uses the bundled 12-volcano Indonesian catalog. |
-| `extract_image` | `bool`                         | `False`          | Also download SO2 and thermal images into `<output_dir>/images/<slug>/{so2,thermal}/`.                     |
-| `max_workers`   | `int`                          | `8`              | Maximum concurrent download threads when `extract_image=True`.                                             |
+| Parameter   | Type                           | Default          | Description                                                                                                |
+|-------------|--------------------------------|------------------|------------------------------------------------------------------------------------------------------------|
+| `volcanoes` | `list[dict[str, str]] \| None` | built-in catalog | List of `{"name": ..., "code": ...}` entries. When `None`, uses the bundled 12-volcano Indonesian catalog. |
 
 Returns `self` for chaining.
 
@@ -367,15 +365,17 @@ Fetch and assemble the combined SO2 + thermal DataFrame for one volcano. Used in
 Returns a DataFrame indexed by `datetime`, with columns `value`, `graph`, `type` (`"SO2"` or
 `"Thermal"`), `date`, `time`, `code`, `name`.
 
-#### `save(filetype="csv", merge=True) -> Self`
+#### `save(filetype="csv", extract_image=False, max_workers=8) -> Self`
 
 Write per-volcano files plus a merged `all-volcanoes` export. Calls `extract()` automatically when
-`self.data` is empty.
+`self.data` is empty. When `extract_image=True`, also downloads the SO2 and thermal images
+referenced by `self.figures` after the data files are written.
 
-| Parameter  | Type                     | Default | Description                                                           |
-|------------|--------------------------|---------|-----------------------------------------------------------------------|
-| `filetype` | `Literal["csv", "xlsx"]` | `"csv"` | Output format.                                                        |
-| `merge`    | `bool`                   | `True`  | Reserved for future use; the merged file is currently always written. |
+| Parameter       | Type                     | Default | Description                                                                            |
+|-----------------|--------------------------|---------|----------------------------------------------------------------------------------------|
+| `filetype`      | `Literal["csv", "xlsx"]` | `"csv"` | Output format.                                                                         |
+| `extract_image` | `bool`                   | `False` | Also download SO2 and thermal images into `<output_dir>/images/<slug>/{so2,thermal}/`. |
+| `max_workers`   | `int`                    | `8`     | Maximum concurrent download threads when `extract_image=True`.                         |
 
 Writes:
 

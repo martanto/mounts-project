@@ -139,8 +139,6 @@ class MountsProject:
     def extract(
         self,
         volcanoes: list[dict[str, str]] | None = None,
-        extract_image: bool = False,
-        max_workers: int = 8,
     ) -> Self:
         """Extract timeseries for a list of volcanoes and populate ``self.data``.
 
@@ -183,22 +181,13 @@ class MountsProject:
                 self.figures, open(os.path.join(self.output_dir, "figures.json"), "w")
             )
 
-        if extract_image and len(self.figures) > 0:
-            images_dir = os.path.join(self.output_dir, "images")
-
-            download_images_from_dict(
-                self.figures,
-                images_dir,
-                overwrite=self.overwrite,
-                verbose=self.verbose,
-                max_workers=max_workers,
-            )
-
         return self
 
     def save(
         self,
         filetype: Literal["csv", "xlsx"] = "csv",
+        extract_image: bool = False,
+        max_workers: int = 8,
     ) -> Self:
         """Write per-volcano files plus a merged ``all-volcanoes`` export.
 
@@ -249,6 +238,20 @@ class MountsProject:
         else:
             df_concat.to_excel(
                 os.path.join(self.output_dir, "all-volcanoes.xlsx"), index=True
+            )
+
+        if extract_image and len(self.figures) > 0:
+            if self.verbose:
+                logger.info(f"Extracting images from {len(self.figures)} volcanoes")
+
+            images_dir = os.path.join(self.output_dir, "images")
+
+            download_images_from_dict(
+                self.figures,
+                images_dir,
+                overwrite=self.overwrite,
+                verbose=self.verbose,
+                max_workers=max_workers,
             )
 
         self.files = files
