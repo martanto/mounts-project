@@ -30,6 +30,7 @@ from plotly.subplots import make_subplots
 
 
 _DOW_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+_GALLERY_PAGE_SIZE = 32  # 4 rows × 8 columns
 
 
 def _iso_to_date(year: int, week: int, dow: int) -> str:
@@ -158,7 +159,9 @@ def _calendar_heatmap(df: pd.DataFrame, data_type: str) -> go.Figure:
     return fig
 
 
-def _image_gallery_section(filtered: pd.DataFrame, data_type: str) -> None:
+def _image_gallery_section(
+    filtered: pd.DataFrame, data_type: str, volcano: str
+) -> None:
     """Render the tabbed SO2 / Thermal grid of downloaded MOUNTS snapshots."""
     images_root = os.path.join(OUTPUT_DIR, "images")
     resolved = resolve_image_paths(filtered, images_root)
@@ -185,8 +188,32 @@ def _image_gallery_section(filtered: pd.DataFrame, data_type: str) -> None:
                     "Run `MountsProject().extract(extract_image=True)` to download."
                 )
                 continue
+            total = len(sub)
+            total_pages = max(1, (total + _GALLERY_PAGE_SIZE - 1) // _GALLERY_PAGE_SIZE)
+            page_key = f"gallery_page_{volcano}_{kind}"
+            if page_key in st.session_state:
+                st.session_state[page_key] = min(
+                    max(int(st.session_state[page_key]), 1), total_pages
+                )
+            if total_pages > 1:
+                page = st.number_input(
+                    "Page",
+                    min_value=1,
+                    max_value=total_pages,
+                    value=1,
+                    step=1,
+                    key=page_key,
+                )
+            else:
+                page = 1
+            start = (int(page) - 1) * _GALLERY_PAGE_SIZE
+            end = min(start + _GALLERY_PAGE_SIZE, total)
+            st.caption(
+                f"Showing {start + 1}–{end} of {total} (page {page} / {total_pages})"
+            )
+            page_sub = sub.iloc[start:end]
             cols = st.columns(8)
-            for i, (ts, row) in enumerate(sub.iterrows()):
+            for i, (ts, row) in enumerate(page_sub.iterrows()):
                 with cols[i % 8]:
                     st.image(
                         row["local_path"],
@@ -287,7 +314,7 @@ def render_detail_page() -> None:
     for t in types:
         st.plotly_chart(_calendar_heatmap(filtered, t), width="stretch")
 
-    _image_gallery_section(filtered, data_type)
+    _image_gallery_section(filtered, data_type, volcano)
 
     with st.expander("Underlying data", expanded=False):
         st.dataframe(filtered, width="stretch")
