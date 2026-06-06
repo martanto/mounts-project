@@ -210,7 +210,6 @@ def _image_gallery_section(
                         "Page",
                         min_value=1,
                         max_value=total_pages,
-                        value=1,
                         step=1,
                         key=page_key,
                     )
