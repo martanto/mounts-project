@@ -52,18 +52,36 @@ def cli() -> None:
     is_flag=True,
     help="Emit per-volcano info logs during extraction.",
 )
+@click.option(
+    "--extract-image/--no-extract-image",
+    default=False,
+    show_default=True,
+    help="Also download SO2 and thermal images after extraction.",
+)
+@click.option(
+    "--max-workers",
+    type=click.IntRange(min=1),
+    default=8,
+    show_default=True,
+    help="Thread pool size for image downloads.",
+)
 def save(
     filetype: str,
     output_dir: str | None,
     overwrite: bool,
     verbose: bool,
+    extract_image: bool,
+    max_workers: int,
 ) -> None:
     """Extract every volcano in the default catalog and save to CSV/XLSX."""
     MountsProject(
         output_dir=output_dir,
         overwrite=overwrite,
         verbose=verbose,
-    ).extract().save(filetype=cast(Literal["csv", "xlsx"], filetype.lower()))
+    ).extract(
+        extract_image=extract_image,
+        max_workers=max_workers,
+    ).save(filetype=cast(Literal["csv", "xlsx"], filetype.lower()))
 
 
 @cli.command(context_settings={"ignore_unknown_options": True})
