@@ -17,10 +17,12 @@ from mounts_project.utils import (
     get_json_from_javascript,
 )
 from mounts_project.logger import logger
+from mounts_project.download import download_images, download_images_from_dict
 from mounts_project.constants import _VOLCANOES, _MOUNTS_TIMESERIES_URL
 
 import pandas as pd
 import requests
+from numpy.f2py.crackfortran import verbose
 
 
 class MountsProject:
@@ -79,6 +81,7 @@ class MountsProject:
         self.verbose = verbose
 
         self.data: dict[str, pd.DataFrame] = {}
+        self.figures: list[dict[str, Any]] = []
         self.catalogs: list[dict[str, Any]] = []
         self.files: list[str] = []
 
@@ -122,9 +125,24 @@ class MountsProject:
         if self.filter_values is not None:
             df = df[df["value"] > self.filter_values]
 
+        figures = {
+            "name": name,
+            "code": code,
+            "index": so2["datetime"].tolist(),
+            "so2": so2["graph"].tolist(),
+            "thermal": thermal["graph"].tolist(),
+        }
+
+        self.figures.append(figures)
+
         return df
 
-    def extract(self, volcanoes: list[dict[str, str]] | None = None) -> Self:
+    def extract(
+        self,
+        volcanoes: list[dict[str, str]] | None = None,
+        extract_image: bool = False,
+        max_workers: int = 8,
+    ) -> Self:
         """Extract timeseries for a list of volcanoes and populate ``self.data``.
 
         Iterates over the given volcanoes (or the built-in :data:`_VOLCANOES`
@@ -159,6 +177,22 @@ class MountsProject:
                     "code": volcano["code"],
                     "updated_at": df.index.max(),
                 }
+            )
+
+        if len(self.figures) > 0:
+            json.dump(
+                self.figures, open(os.path.join(self.output_dir, "figures.json"), "w")
+            )
+
+        if extract_image and len(self.figures) > 0:
+            images_dir = os.path.join(self.output_dir, "images")
+
+            download_images_from_dict(
+                self.figures,
+                images_dir,
+                overwrite=self.overwrite,
+                verbose=self.verbose,
+                max_workers=max_workers,
             )
 
         return self
