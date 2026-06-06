@@ -1,6 +1,6 @@
 # mounts-project
 
-![Version](https://img.shields.io/badge/version-0.2.0-blue)
+![Version](https://img.shields.io/badge/version-0.2.1-blue)
 ![Python](https://img.shields.io/badge/python-3.11%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Status](https://img.shields.io/badge/status-active%20development-orange)
@@ -132,6 +132,15 @@ uv run mounts dashboard
 The dashboard reads `output/all-volcanoes.csv` from the current working
 directory. If it does not exist yet, click **Refresh data** in the sidebar
 or run `uv run mounts save --type csv` once to populate it.
+
+The **Volcano detail** page also includes an image gallery (since `0.2.1`)
+showing the SO2 and thermal snapshots previously fetched via
+`extract(extract_image=True)`. Images live under
+`output/images/<slug>/{so2,thermal}/` and are matched to the active volcano,
+data type, and date range from the existing selectors — no extra index file
+is required. The gallery renders as a 10-column grid with a per-tab
+**Per page** dropdown (50 / 100 / 200) and a page selector, both kept in a
+narrow control group above the thumbnails.
 
 ## Quick Start
 
