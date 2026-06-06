@@ -100,14 +100,17 @@ Extract every volcano in the default catalog and write the result.
 uv run mounts save --type csv                       # → ./output/csv/*.csv + all-volcanoes.csv
 uv run mounts save --type xlsx --output-dir data    # → ./data/xlsx/*.xlsx + all-volcanoes.xlsx
 uv run mounts save --overwrite -v                   # force re-fetch + verbose logs
+uv run mounts save --extract-image --max-workers 16 # also download SO2/thermal images
 ```
 
-| Option         | Default    | Description                                        |
-|----------------|------------|----------------------------------------------------|
-| `--type`       | `csv`      | Output format (`csv` or `xlsx`).                   |
-| `--output-dir` | `./output` | Override the output directory.                     |
-| `--overwrite`  | off        | Re-fetch from MOUNTS even when cached JSON exists. |
-| `--verbose`    | off        | Emit per-volcano info logs during extraction.      |
+| Option              | Default    | Description                                                              |
+|---------------------|------------|--------------------------------------------------------------------------|
+| `--type`            | `csv`      | Output format (`csv` or `xlsx`).                                         |
+| `--output-dir`      | `./output` | Override the output directory.                                           |
+| `--overwrite`       | off        | Re-fetch from MOUNTS even when cached JSON exists.                       |
+| `--verbose`         | off        | Emit per-volcano info logs during extraction.                            |
+| `--extract-image`   | off        | Also download SO2 and thermal images into `<output_dir>/images/`.        |
+| `--max-workers`     | `8`        | Thread pool size for image downloads (only used with `--extract-image`). |
 
 ### `mounts dashboard`
 
