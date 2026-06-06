@@ -78,10 +78,11 @@ def save(
         output_dir=output_dir,
         overwrite=overwrite,
         verbose=verbose,
-    ).extract(
+    ).extract().save(
+        filetype=cast(Literal["csv", "xlsx"], filetype.lower()),
         extract_image=extract_image,
         max_workers=max_workers,
-    ).save(filetype=cast(Literal["csv", "xlsx"], filetype.lower()))
+    )
 
 
 @cli.command(context_settings={"ignore_unknown_options": True})
