@@ -1,8 +1,11 @@
 """Volcano detail page: per-volcano time series with anomaly, distribution, calendar."""
 
+import os
+
 from mounts_project.constants import (
     SO2_UNIT,
     SO2_COLOR,
+    OUTPUT_DIR,
     THERMAL_UNIT,
     THERMAL_COLOR,
     ANOMALY_SIGMA_DEFAULT,
@@ -13,6 +16,7 @@ from mounts_project.dashboard.data import (
     refresh_data,
     compute_anomalies,
 )
+from mounts_project.dashboard.images import resolve_image_paths
 from mounts_project.dashboard.components import (
     render_chart,
     render_metrics,
@@ -154,6 +158,43 @@ def _calendar_heatmap(df: pd.DataFrame, data_type: str) -> go.Figure:
     return fig
 
 
+def _image_gallery_section(filtered: pd.DataFrame, data_type: str) -> None:
+    """Render the tabbed SO2 / Thermal grid of downloaded MOUNTS snapshots."""
+    images_root = os.path.join(OUTPUT_DIR, "images")
+    resolved = resolve_image_paths(filtered, images_root)
+
+    st.subheader("Image gallery")
+    if len(resolved):
+        st.caption(
+            f"{int(resolved['exists'].sum())} of {len(resolved)} images on disk"
+        )
+    else:
+        st.caption("No image references in this date range.")
+
+    so2_tab, thermal_tab = st.tabs(["SO2", "Thermal"])
+    for tab, kind in ((so2_tab, "SO2"), (thermal_tab, "Thermal")):
+        with tab:
+            if data_type not in ("Both", kind):
+                st.caption("Hidden by Data type selector.")
+                continue
+            sub = resolved[(resolved["type"] == kind) & resolved["exists"]]
+            sub = sub.sort_index(ascending=False)
+            if sub.empty:
+                st.info(
+                    f"No downloaded {kind} images for this date range. "
+                    "Run `MountsProject().extract(extract_image=True)` to download."
+                )
+                continue
+            cols = st.columns(8)
+            for i, (ts, row) in enumerate(sub.iterrows()):
+                with cols[i % 8]:
+                    st.image(
+                        row["local_path"],
+                        caption=ts.strftime("%Y-%m-%d %H:%M"),
+                        width="stretch",
+                    )
+
+
 def render_detail_page() -> None:
     """Entry point for the Volcano detail page."""
     df = load_data()
@@ -245,6 +286,8 @@ def render_detail_page() -> None:
     types = ["SO2", "Thermal"] if data_type == "Both" else [data_type]
     for t in types:
         st.plotly_chart(_calendar_heatmap(filtered, t), width="stretch")
+
+    _image_gallery_section(filtered, data_type)
 
     with st.expander("Underlying data", expanded=False):
         st.dataframe(filtered, width="stretch")

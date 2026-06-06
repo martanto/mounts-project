@@ -17,12 +17,11 @@ from mounts_project.utils import (
     get_json_from_javascript,
 )
 from mounts_project.logger import logger
-from mounts_project.download import download_images, download_images_from_dict
+from mounts_project.download import download_images_from_dict
 from mounts_project.constants import _VOLCANOES, _MOUNTS_TIMESERIES_URL
 
 import pandas as pd
 import requests
-from numpy.f2py.crackfortran import verbose
 
 
 class MountsProject:
@@ -198,7 +197,8 @@ class MountsProject:
         return self
 
     def save(
-        self, filetype: Literal["csv", "xlsx"] = "csv", merge: bool = True
+        self,
+        filetype: Literal["csv", "xlsx"] = "csv",
     ) -> Self:
         """Write per-volcano files plus a merged ``all-volcanoes`` export.
 
