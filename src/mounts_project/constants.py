@@ -13,7 +13,9 @@ _MOUNTS_HOME_URL = "http://mounts-project.com"
 _MOUNTS_TIMESERIES_URL = _MOUNTS_HOME_URL + "/timeseries"
 _MOUNTS_STATIC_URL: str = _MOUNTS_HOME_URL + "/static"
 
-OUTPUT_DIR = os.path.join(os.getcwd(), "output")
+OUTPUT_DIR = os.environ.get(
+    "MOUNTS_OUTPUT_DIR", os.path.join(os.getcwd(), "output")
+)
 CSV_PATH = os.path.join(OUTPUT_DIR, "all-volcanoes.csv")
 XLSX_PATH = os.path.join(OUTPUT_DIR, "all-volcanoes.xlsx")
 

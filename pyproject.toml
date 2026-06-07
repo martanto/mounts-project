@@ -34,6 +34,9 @@ dashboard = [
     "streamlit>=1.40",
     "plotly>=5.24",
 ]
+desktop = [
+    "pywebview>=6.2.1",
+]
 
 [dependency-groups]
 dev = [
@@ -43,6 +46,7 @@ dev = [
     "ipykernel",
     "notebook",
     "pytest",
+    "pyinstaller>=6.20.0",
 ]
 
 [project.scripts]
