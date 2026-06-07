@@ -38,6 +38,7 @@ damages arising out of any use of, or inability to use, the data.
 - [Installation](#installation)
 - [Command-line interface](#command-line-interface)
 - [Dashboard](#dashboard)
+- [Desktop app (Windows)](#desktop-app-windows)
 - [Quick Start](#quick-start)
 - [About the project](#about-the-project)
 - [Publications](#publications)
@@ -144,6 +145,44 @@ data type, and date range from the existing selectors — no extra index file
 is required. The gallery renders as a 10-column grid with a per-tab
 **Per page** dropdown (50 / 100 / 200) and a page selector, both kept in a
 narrow control group above the thumbnails.
+
+## Desktop app (Windows)
+
+> Prototype — Windows only for now.
+
+The dashboard can also be shipped as a standalone Windows executable that
+bundles Python, Streamlit, and a [pywebview](https://pywebview.flowrl.com/)
+window so end users do not need to install anything.
+
+**Build the binary:**
+
+```bash
+uv sync --extra desktop
+uv run pyinstaller mounts-dashboard.spec
+```
+
+The result is `dist\mounts-dashboard\mounts-dashboard.exe` (~260 MB
+unpacked, `--onedir` mode).
+
+**Build a single-file installer** with
+[Inno Setup 6](https://jrsoftware.org/isdl.php):
+
+```bash
+iscc installer\mounts-dashboard.iss
+```
+
+Produces `installer\Output\mounts-dashboard-setup-<version>.exe` with a
+Start Menu shortcut and uninstaller.
+
+**First run:** a native folder picker asks for the MOUNTS output directory
+(the folder containing `all-volcanoes.csv` and the `images/` tree). The
+choice is persisted to:
+
+```
+%APPDATA%\mounts-project\config.json
+```
+
+Delete that file to be re-prompted, or edit it to change the path.
 
 ## Quick Start
 

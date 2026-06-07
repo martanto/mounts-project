@@ -3,7 +3,7 @@
 import os
 
 from mounts_project import MountsProject
-from mounts_project.constants import CSV_PATH, XLSX_PATH
+from mounts_project.constants import CSV_PATH, XLSX_PATH, OUTPUT_DIR
 
 import pandas as pd
 import streamlit as st
@@ -29,9 +29,11 @@ def load_data() -> pd.DataFrame | None:
 
 
 def refresh_data() -> None:
-    """Re-run extraction, persist to CSV, and clear the Streamlit data cache."""
+    """Re-run extraction + image download, persist to CSV, and clear caches."""
     with st.spinner("Fetching latest MOUNTS data (this can take ~1 minute)…"):
-        MountsProject(overwrite=True).extract().save(filetype="csv")
+        MountsProject(overwrite=True, output_dir=OUTPUT_DIR).extract().save(
+            filetype="csv", extract_image=True
+        )
     st.cache_data.clear()
     st.toast("Data refreshed.")
 
