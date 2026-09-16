@@ -8,7 +8,6 @@ dashboard.
 
 import os
 
-
 _MOUNTS_HOME_URL = "http://mounts-project.com"
 _MOUNTS_TIMESERIES_URL = _MOUNTS_HOME_URL + "/timeseries"
 _MOUNTS_STATIC_URL: str = _MOUNTS_HOME_URL + "/static"
@@ -77,5 +76,9 @@ _VOLCANOES: list[dict[str, str]] = [
     {
         "name": "Slamet",
         "code": "263180",
+    },
+    {
+        "name": "Ruang",
+        "code": "267010",
     },
 ]
