@@ -7,7 +7,7 @@
 ; Install Inno Setup 6 from https://jrsoftware.org/isdl.php if `iscc` is not on PATH.
 
 #define MyAppName       "MOUNTS Dashboard"
-#define MyAppVersion    "0.2.4"
+#define MyAppVersion    "0.3.0"
 #define MyAppPublisher  "Martanto"
 #define MyAppURL        "https://github.com/martanto/mounts-project"
 #define MyAppExeName    "mounts-dashboard.exe"
