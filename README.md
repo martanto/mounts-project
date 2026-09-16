@@ -1,16 +1,15 @@
 # mounts-project
 
-![Version](https://img.shields.io/badge/version-0.2.4-blue)
+[![Version](https://img.shields.io/pypi/v/mounts-project?label=version)](https://pypi.org/project/mounts-project/)
 ![Python](https://img.shields.io/badge/python-3.11%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Status](https://img.shields.io/badge/status-active%20development-orange)
-![PyPI](https://img.shields.io/pypi/v/mounts-project?label=pypi)
-[![PyPI Downloads](https://static.pepy.tech/personalized-badge/mounts-project?period=total&units=INTERNATIONAL_SYSTEM&left_color=BLUE&right_color=GREEN&left_text=downloads)](https://pepy.tech/projects/mounts-project)
+[![PyPI Downloads](https://static.pepy.tech/personalized-badge/mounts-project?period=total&units=INTERNATIONAL_SYSTEM&left_color=BLACK&right_color=GREEN&left_text=downloads)](https://pepy.tech/projects/mounts-project)
 
 Unofficial Python package
-for [MOUNTS — Monitoring Unrest From Space](http://www.mounts-project.com).
-Scrapes SO2 and thermal timeseries from the public MOUNTS pages and exposes them as pandas
-DataFrames, ready to be written to CSV or XLSX.
+for [MOUNTS — Monitoring Unrest From Space](http://www.mounts-project.com). Scrapes SO2 and thermal
+timeseries from the public MOUNTS pages and exposes them as pandas DataFrames, ready to be written
+to CSV or XLSX.
 
 <table align="center">
   <tr>
@@ -38,6 +37,7 @@ damages arising out of any use of, or inability to use, the data.
 - [Installation](#installation)
 - [Command-line interface](#command-line-interface)
 - [Dashboard](#dashboard)
+- [Desktop app (Windows)](#desktop-app-windows)
 - [Quick Start](#quick-start)
 - [About the project](#about-the-project)
 - [Publications](#publications)
@@ -52,8 +52,8 @@ damages arising out of any use of, or inability to use, the data.
 ## Requirements
 
 - **Python** `>=3.11`
-- **uv** — Python package
-  manager ([installation guide](https://docs.astral.sh/uv/getting-started/installation/))
+- **uv** — Python package manager
+  ([installation guide](https://docs.astral.sh/uv/getting-started/installation/))
 
 ## Installation
 
@@ -103,14 +103,14 @@ uv run mounts save --overwrite -v                   # force re-fetch + verbose l
 uv run mounts save --extract-image --max-workers 16 # also download SO2/thermal images
 ```
 
-| Option              | Default    | Description                                                              |
-|---------------------|------------|--------------------------------------------------------------------------|
-| `--type`            | `csv`      | Output format (`csv` or `xlsx`).                                         |
-| `--output-dir`      | `./output` | Override the output directory.                                           |
-| `--overwrite`       | off        | Re-fetch from MOUNTS even when cached JSON exists.                       |
-| `--verbose`         | off        | Emit per-volcano info logs during extraction.                            |
-| `--extract-image`   | off        | Also download SO2 and thermal images into `<output_dir>/images/`.        |
-| `--max-workers`     | `8`        | Thread pool size for image downloads (only used with `--extract-image`). |
+| Option            | Default    | Description                                                              |
+|-------------------|------------|--------------------------------------------------------------------------|
+| `--type`          | `csv`      | Output format (`csv` or `xlsx`).                                         |
+| `--output-dir`    | `./output` | Override the output directory.                                           |
+| `--overwrite`     | off        | Re-fetch from MOUNTS even when cached JSON exists.                       |
+| `--verbose`       | off        | Emit per-volcano info logs during extraction.                            |
+| `--extract-image` | off        | Also download SO2 and thermal images into `<output_dir>/images/`.        |
+| `--max-workers`   | `8`        | Thread pool size for image downloads (only used with `--extract-image`). |
 
 ### `mounts dashboard`
 
@@ -124,26 +124,88 @@ uv run mounts dashboard --server.port 9000 --server.headless true
 
 ## Dashboard
 
-`mounts dashboard` opens a Streamlit app that groups the extracted data by
-volcano and by data type (SO2 / Thermal). Install the extras first:
+`mounts dashboard` opens a Streamlit app that groups the extracted data by volcano and by data type
+(SO2 / Thermal). Install the extras first:
 
 ```bash
 uv sync --extra dashboard
 uv run mounts dashboard
 ```
 
-The dashboard reads `output/all-volcanoes.csv` from the current working
-directory. If it does not exist yet, click **Refresh data** in the sidebar
-or run `uv run mounts save --type csv` once to populate it.
+The dashboard reads `output/all-volcanoes.csv` from the current working directory. If it does not
+exist yet, click **Refresh data** in the sidebar or run `uv run mounts save --type csv` once to
+populate it.
 
 The **Volcano detail** page also includes an image gallery (since `0.2.1`)
 showing the SO2 and thermal snapshots previously fetched via
 `save(extract_image=True)`. Images live under
-`output/images/<slug>/{so2,thermal}/` and are matched to the active volcano,
-data type, and date range from the existing selectors — no extra index file
-is required. The gallery renders as a 10-column grid with a per-tab
-**Per page** dropdown (50 / 100 / 200) and a page selector, both kept in a
-narrow control group above the thumbnails.
+`output/images/<slug>/{so2,thermal}/` and are matched to the active volcano, data type, and date
+range from the existing selectors — no extra index file is required. The gallery renders as a
+10-column grid with a per-tab **Per page** dropdown (50 / 100 / 200) and a page selector, both kept
+in a narrow control group above the thumbnails.
+
+## Desktop app (Windows)
+
+> Prototype — Windows only for now.
+
+The dashboard can also be shipped as a standalone Windows executable that bundles Python, Streamlit,
+and a [pywebview](https://pywebview.flowrl.com/)
+window so end users do not need to install anything.
+
+**Install:** download the latest `mounts-dashboard-setup-<version>.exe` from the
+[Releases page](https://github.com/martanto/mounts-project/releases) and run it. The installer is
+per-user (no administrator rights required) and adds a Start Menu shortcut; an optional Desktop
+shortcut can be enabled in the wizard.
+
+**Build the binary:**
+
+```bash
+uv sync --extra desktop
+uv run pyinstaller mounts-dashboard.spec
+```
+
+The result is `dist\mounts-dashboard\mounts-dashboard.exe` (~260 MB unpacked, `--onedir` mode).
+
+**Build a single-file installer** with
+[Inno Setup 6](https://jrsoftware.org/isdl.php):
+
+```bash
+iscc installer\mounts-dashboard.iss
+```
+
+Produces `installer\Output\mounts-dashboard-setup-<version>.exe` with a Start Menu shortcut and
+uninstaller.
+
+If `iscc` is not recognized in your shell, the Inno Setup installer did not add itself to `PATH`
+(this is the case for per-user installs under `%LOCALAPPDATA%\Programs\Inno Setup 6`). Either call
+the compiler with its full path:
+
+```powershell
+& "$env:LOCALAPPDATA\Programs\Inno Setup 6\ISCC.exe" installer\mounts-dashboard.iss
+```
+
+or add Inno Setup to your user `PATH` once, then reopen the shell:
+
+```powershell
+[Environment]::SetEnvironmentVariable(
+    "Path",
+    [Environment]::GetEnvironmentVariable("Path", "User") + ";$env:LOCALAPPDATA\Programs\Inno Setup 6",
+    "User"
+)
+```
+
+Alternatively, build from the Inno Setup GUI: open `installer\mounts-dashboard.iss` in the *Inno
+Setup Compiler* application (Start Menu → Inno Setup 6) and choose **Build → Compile** (or press
+`F9`). The output lands in the same `installer\Output\` directory.
+
+**First run:** a native folder picker asks for the MOUNTS output directory (the folder containing
+`all-volcanoes.csv` and the `images/` tree). The choice is persisted to:
+
+```
+%APPDATA%\mounts-project\config.json
+```
+
+Delete that file to be re-prompted, or edit it to change the path.
 
 ## Quick Start
 
@@ -217,22 +279,20 @@ MountsProject(verbose=True).extract().save(extract_image=True, max_workers=8)
 
 ## About the project
 
-MOUNTS is a project conceptualized and led by Sébastien Valade since April 2017. Its aim is
-to develop an operational monitoring system for volcanoes worldwide using satellite imagery.
-It currently focuses on processing of Sentinel-1 (SAR), Sentinel-2 (SWIR), and Sentinel-5P (TROPOMI)
-data.
-Artificial intelligence "plugins" are developed and implemented in the processing chain to assist
-monitoring tasks.
+MOUNTS is a project conceptualized and led by Sébastien Valade since April 2017. Its aim is to
+develop an operational monitoring system for volcanoes worldwide using satellite imagery. It
+currently focuses on processing of Sentinel-1 (SAR), Sentinel-2 (SWIR), and Sentinel-5P (TROPOMI)
+data. Artificial intelligence "plugins" are developed and implemented in the processing chain to
+assist monitoring tasks.
 
-The project was from April 2017 to October 2019 funded by GEO.X and carried at TU-Berlin
-(Computer Vision & Remote Sensing group, Prof. O. Hellwich) and GFZ
-(Physics of Earthquakes and Volcanoes section, Priv. Doz. T. Walter).
-Since March 2020, the project is carried at UNAM (Instituto de Geofísica, Mexico City).
-The server running both the system and website is however still hosted at CV TU-Berlin,
-with the kind agreement of Prof. Hellwich.
+The project was from April 2017 to October 2019 funded by GEO.X and carried at TU-Berlin (Computer
+Vision & Remote Sensing group, Prof. O. Hellwich) and GFZ (Physics of Earthquakes and Volcanoes
+section, Priv. Doz. T. Walter). Since March 2020, the project is carried at UNAM (Instituto de
+Geofísica, Mexico City). The server running both the system and website is however still hosted at
+CV TU-Berlin, with the kind agreement of Prof. Hellwich.
 
-MOUNTS is strongly inspired by the operating MIROVA system,
-with which tight collaborations are ongoing.
+MOUNTS is strongly inspired by the operating MIROVA system, with which tight collaborations are
+ongoing.
 
 ## Publications
 
@@ -246,7 +306,7 @@ with which tight collaborations are ongoing.
 
 - Massimetti, F., Coppola, D., Laiolo, M., Valade, S., Cigolini, C., Ripepe M., Volcanic Hot-Spot
   Detection Using SENTINEL-2: A Comparison with MODIS–MIROVA Thermal Data Series, *Remote Sens.*,
-  2020, 12(5), 820
+  2020, 12 (5), 820
 
 ### Algorithm used to filter speckle from Sentinel-1 images
 
@@ -285,8 +345,8 @@ with which tight collaborations are ongoing.
 
 - Andreas Ley developed and trained the convolutional neural network used by MOUNTS to detect ground
   deformation from Sentinel-1 interferograms.
-- Olivier D'Hondt developed the NDSAR toolkit for SAR speckle filtering used in Valade et al. (
-  2019).
+- Olivier D'Hondt developed the NDSAR toolkit for SAR speckle filtering used in Valade et al.
+  (2019).
 - Timothy Davis & Vinit Jain, under the supervision of Andreas Ley & Sébastien Valade, developed and
   trained the convolutional neural network used by MOUNTS to despeckle Sentinel-1 SAR amplitude
   images: Davis et al. 2020 (IGARSS).
@@ -309,8 +369,8 @@ with which tight collaborations are ongoing.
 The products available on the MOUNTS website are value-added products created from freely available
 Sentinel data provided by ESA. The products are released under the following conditions: permission
 to freely copy, share and quote for non-commercial purposes, with attribution to MOUNTS and ESA as
-the original source. If used for academic purposes, contacting Sébastien Valade (
-valade@igeofisica.unam.mx) and citing the above-mentioned publication (Valade et al. 2019, *Remote
+the original source. If used for academic purposes, contacting Sébastien Valade
+(valade@igeofisica.unam.mx) and citing the above-mentioned publication (Valade et al. 2019, *Remote
 Sensing*) is kindly appreciated.
 
 ## API Reference
@@ -348,7 +408,7 @@ Fetch timeseries for a list of volcanoes and populate `self.data`, `self.catalog
 
 | Parameter   | Type                           | Default          | Description                                                                                                |
 |-------------|--------------------------------|------------------|------------------------------------------------------------------------------------------------------------|
-| `volcanoes` | `list[dict[str, str]] \| None` | built-in catalog | List of `{"name": ..., "code": ...}` entries. When `None`, uses the bundled 12-volcano Indonesian catalog. |
+| `volcanoes` | `list[dict[str, str]] \| None` | built-in catalog | List of `{"name": ..., "code": ...}` entries. When `None`, uses the bundled 13-volcano Indonesian catalog. |
 
 Returns `self` for chaining.
 
@@ -387,9 +447,9 @@ Returns `self` for chaining.
 ### Image downloads
 
 From `mounts_project.download`. All downloaders run in parallel via a
-`ThreadPoolExecutor` that shares a single `requests.Session` (pooled connections, reused
-TLS handshakes). Individual URL failures are logged and skipped so a bad URL does not
-abort the batch. URLs are resolved against the MOUNTS static asset host.
+`ThreadPoolExecutor` that shares a single `requests.Session` (pooled connections, reused TLS
+handshakes). Individual URL failures are logged and skipped so a bad URL does not abort the batch.
+URLs are resolved against the MOUNTS static asset host.
 
 | Function                                                                                                  | Description                                                                                                             |
 |-----------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------|
@@ -438,5 +498,5 @@ From `mounts_project.logger`:
 | `disable_logging()`          | Remove all handlers.                                                                      |
 | `enable_logging()`           | Restore handlers after `disable_logging()`.                                               |
 
-Set the environment variable `DISABLE_LOGGING=1` before import to skip handler setup entirely (
-useful for subprocess workers).
+Set the environment variable `DISABLE_LOGGING=1` before import to skip handler setup entirely
+(useful for subprocess workers).
